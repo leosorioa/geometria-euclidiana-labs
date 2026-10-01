@@ -722,15 +722,20 @@ const authSystem = {
   },
 
   authenticate(name, email) {
-    // Verificar si ya existe un intento
-    const sessionKey = `geom_attempt_${email.toLowerCase()}`;
+    // Validar que ambos parámetros estén presentes
+    if (!name || !email) {
+      return { success: false, message: 'Error: faltan datos de autenticación.' };
+    }
+
+    // Verificar si ya existe un intento con este correo
+    const sessionKey = `geom_attempt_${email}`;
     if (localStorage.getItem(sessionKey)) {
       return { success: false, message: 'Este correo ya ha completado una evaluación. No se permite reintentar.' };
     }
 
     this.studentData = {
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
+      name: name,
+      email: email,
       startTime: new Date().toISOString(),
       scores: { just: 0, neg: 0, conv: 0, reg: 0 },
       completed: { just: false, neg: false, conv: false, reg: false },
@@ -997,8 +1002,28 @@ function navigate(id) {
   }
 
   const main = document.getElementById("main-content");
-  main.innerHTML = '<div class="progress-dashboard" id="progressDashboard"></div><main id="section-content"></main>';
+  main.innerHTML = `
+    <div class="progress-dashboard" id="progressDashboard">
+      <div class="progress-header">
+        <h3>Progreso de evaluación</h3>
+        <button class="btn" style="font-size:.75rem" id="logoutBtn" title="Cerrar sesión">🚪 Cerrar sesión</button>
+      </div>
+      <div class="progress-bar-container">
+        <div class="progress-bar" id="progressBar" style="width:0%">0%</div>
+      </div>
+      <div class="score-grid" id="scoreGrid"></div>
+    </div>
+    <main id="section-content"></main>
+  `;
   updateProgressDashboard();
+
+  // Re-adjuntar event listener del botón de logout
+  document.getElementById('logoutBtn')?.addEventListener('click', () => {
+    if (confirm('¿Cerrar sesión? Perderás el acceso a la evaluación.')) {
+      authSystem.logout();
+      location.reload();
+    }
+  });
 
   const sectionContent = document.getElementById("section-content");
   renderers[id](sectionContent, id);
@@ -1069,18 +1094,37 @@ window.addEventListener('DOMContentLoaded', () => {
     const nameInput = document.getElementById('studentName');
     const emailInput = document.getElementById('studentEmail');
 
-    authSubmit.addEventListener('click', () => {
-      const name = nameInput.value;
-      const email = emailInput.value;
+    // Función para enviar el formulario
+    function submitAuth() {
+      const name = nameInput.value.trim();
+      const email = emailInput.value.trim().toLowerCase();
 
-      if (!name || !email) {
-        authError.textContent = 'Por favor completa todos los campos.';
+      // Validar que ambos campos estén completos
+      if (!name) {
+        authError.textContent = '⚠ Por favor ingresa tu nombre completo.';
         authError.classList.add('show');
+        nameInput.focus();
+        return;
+      }
+
+      if (!email) {
+        authError.textContent = '⚠ Por favor ingresa tu correo electrónico.';
+        authError.classList.add('show');
+        emailInput.focus();
+        return;
+      }
+
+      // Validar formato básico de email
+      if (!email.includes('@')) {
+        authError.textContent = '⚠ Por favor ingresa un correo válido (debe incluir @).';
+        authError.classList.add('show');
+        emailInput.focus();
         return;
       }
 
       const result = authSystem.authenticate(name, email);
       if (result.success) {
+        authError.classList.remove('show');
         authModal.classList.add('hidden');
         updateProgressDashboard();
         navigate(SECTIONS[0].id);
@@ -1088,6 +1132,17 @@ window.addEventListener('DOMContentLoaded', () => {
         authError.textContent = result.message;
         authError.classList.add('show');
       }
+    }
+
+    // Enviar al hacer click en el botón
+    authSubmit.addEventListener('click', submitAuth);
+
+    // Enviar al presionar Enter en los campos
+    nameInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') submitAuth();
+    });
+    emailInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') submitAuth();
     });
   }
 
