@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geometría Euclidiana · Laboratorios Unidad 2 — Lógica y geometría de incidencia</title>
+
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
+
+<!-- Tipografías -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* =========================================================
+   SISTEMA DE DISEÑO — tokens idénticos a las Unidades 1 y 2
+   ========================================================= */
+:root{
+  --bg:            #f3f5f2;
+  --bg-panel:      #ffffff;
+  --bg-inset:      #eef1ee;
+  --ink:           #16233a;
+  --ink-soft:      #4a5568;
+  --ink-faint:     #8792a3;
+  --line:          #d9e0e6;
+  --line-strong:   #b7c1cc;
+  --accent:        #2451a3;
+  --accent-soft:   #e7edf7;
+  --true:          #0e6e5c;
+  --true-soft:     #e2f2ee;
+  --false:         #b5482e;
+  --false-soft:    #fbe9e4;
+
+  --font-display:  'Spectral', Georgia, serif;
+  --font-body:     'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono:     'IBM Plex Mono', ui-monospace, monospace;
+
+  --radius: 3px;
+  --nav-w: 258px;
+  --header-h: 56px;
+}
+
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+body{
+  margin:0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  background-image: radial-gradient(circle, var(--line) 1px, transparent 1px);
+  background-size: 22px 22px;
+  background-position: -11px -11px;
+}
+
+h1,h2,h3,h4{ font-family: var(--font-display); color: var(--ink); margin: 0 0 .5em; font-weight: 600; }
+h1{ font-size: 1.5rem; letter-spacing: -.01em; }
+h2{ font-size: 1.32rem; }
+h3{ font-size: 1.05rem; }
+p{ margin: 0 0 .85em; max-width: 62ch; }
+p:last-child{ margin-bottom: 0; }
+a{ color: var(--accent); }
+ul, ol{ padding-left: 1.15em; margin: 0 0 .85em; max-width: 62ch; }
+li{ margin-bottom: .3em; }
+strong{ font-weight: 600; }
+code, .mono{ font-family: var(--font-mono); }
+button{ font-family: inherit; }
+
+:focus-visible{ outline: 2.5px solid var(--accent); outline-offset: 2px; }
+
+.skip-link{
+  position: absolute; left: -999px; top: auto;
+  background: var(--ink); color: #fff; padding: .6em 1em; z-index: 200;
+  border-radius: var(--radius);
+}
+.skip-link:focus{ left: 12px; top: 12px; }
+
+.app-shell{ min-height: 100vh; display: flex; flex-direction: column; }
+
+.brand-bar{
+  height: var(--header-h);
+  display: flex; align-items: center; gap: .7em;
+  padding: 0 1rem;
+  background: var(--ink); color: #fff;
+  position: sticky; top: 0; z-index: 50;
+}
+.brand-mark{ width: 26px; height: 26px; flex: none; }
+.brand-text{ display: flex; flex-direction: column; line-height: 1.15; }
+.brand-text .course{ font-family: var(--font-display); font-size: .98rem; font-weight: 600; }
+.brand-text .unit{ font-size: .72rem; color: #b9c3d6; font-family: var(--font-mono); letter-spacing: .02em; }
+
+.topic-nav .sidebar-brand{ display: none; }
+.topic-nav{
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--line);
+  position: sticky; top: var(--header-h); z-index: 40;
+}
+.topic-nav ol{
+  list-style: none; margin: 0; padding: 0;
+  display: flex; overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.topic-nav li{ margin: 0; flex: none; }
+.topic-nav button{
+  display: flex; align-items: center; gap: .5em;
+  white-space: nowrap;
+  padding: .7em .9em;
+  background: none; border: none; border-bottom: 3px solid transparent;
+  color: var(--ink-soft); cursor: pointer; font-size: .82rem; font-weight: 500;
+  transition: color .15s ease, border-color .15s ease, background-color .15s ease;
+}
+.topic-nav button:hover{ color: var(--ink); background: var(--bg-inset); }
+.topic-nav button .tag{
+  font-family: var(--font-mono); font-size: .72rem; color: var(--ink-faint);
+  border: 1px solid var(--line-strong); border-radius: 50%;
+  width: 20px; height: 20px; display: grid; place-items: center; flex: none;
+}
+.topic-nav button[aria-current="true"]{ color: var(--accent); border-bottom-color: var(--accent); }
+.topic-nav button[aria-current="true"] .tag{
+  border-color: var(--accent); color: var(--accent); background: var(--accent-soft);
+}
+
+.layout{ flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 1320px; margin: 0 auto; }
+main{ flex: 1; min-width: 0; padding: 1.4rem 1rem 4rem; }
+
+@media (min-width: 880px){
+  .topic-nav{ position: sticky; top: 0; }
+  .brand-bar{ display: none; }
+  .layout{ align-items: flex-start; flex-direction: row; }
+  .topic-nav{
+    width: var(--nav-w); flex: none;
+    border-bottom: none; border-right: 1px solid var(--line);
+    height: 100vh; position: sticky; top: 0; overflow-y: auto;
+    display: flex; flex-direction: column;
+  }
+  .topic-nav .sidebar-brand{ display: block; padding: 1.3rem 1.1rem 1rem; border-bottom: 1px solid var(--line); }
+  .topic-nav .sidebar-brand .course{ font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; display:block; }
+  .topic-nav .sidebar-brand .unit{ font-family: var(--font-mono); font-size: .74rem; color: var(--ink-faint); letter-spacing: .02em; }
+  .topic-nav ol{ display: block; padding: .5rem 0; overflow: visible; }
+  .topic-nav li{ display: block; }
+  .topic-nav button{ width: 100%; border-bottom: none; border-left: 3px solid transparent; padding: .6em 1.1em; text-align: left; }
+  .topic-nav button[aria-current="true"]{ border-left-color: var(--accent); background: var(--accent-soft); }
+  main{ padding: 2.2rem 2.6rem 5rem; }
+}
+
+.section-kicker{
+  font-family: var(--font-mono); font-size: .76rem; color: var(--accent);
+  letter-spacing: .02em; margin-bottom: .3em; display: flex; align-items: center; gap: .5em;
+}
+.section-kicker .tag{ border:1px solid var(--accent); border-radius: 50%; width: 20px; height:20px; display:grid; place-items:center; color: var(--accent); }
+.section-head{ margin-bottom: 1.3rem; max-width: 74ch; }
+.section-head h1{ margin-bottom: .3em; }
+.section-head .lede{ color: var(--ink-soft); font-size: .96rem; }
+
+.panel{ background: var(--bg-panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem 1.15rem; }
+.panel + .panel{ margin-top: 1rem; }
+.panel h3{ margin-bottom: .55em; }
+.grid-2{ display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 780px){ .grid-2{ grid-template-columns: minmax(260px, 0.85fr) 1.15fr; align-items: start; } }
+.stack{ display: flex; flex-direction: column; gap: 1rem; }
+
+.axiom-box{
+  background: var(--bg-inset);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: .7em .9em;
+  margin: .7em 0;
+}
+.axiom-box .axiom-tag{ font-family: var(--font-mono); font-weight: 600; color: var(--accent); margin-right:.5em; }
+
+.rule-box{
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--true);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: .7em .9em;
+  margin: .7em 0;
+}
+.rule-box .rule-tag{ font-family: var(--font-mono); font-weight: 600; color: var(--true); margin-right:.5em; }
+
+.callout{
+  border-radius: var(--radius);
+  padding: .75em .95em;
+  margin: .8em 0;
+  border: 1px solid var(--line);
+  font-size: .93rem;
+}
+.callout .callout-label{
+  font-family: var(--font-mono); font-size: .72rem; text-transform: uppercase;
+  letter-spacing: .04em; color: var(--ink-faint); display:block; margin-bottom:.3em;
+}
+.callout.idea{ background: var(--accent-soft); border-color: #c4d3ec; }
+.callout.idea .callout-label{ color: var(--accent); }
+.callout.history{ background: var(--bg-inset); }
+
+.verdict{
+  display: inline-flex; align-items: center; gap: .4em;
+  font-family: var(--font-mono); font-size: .78rem; font-weight: 600;
+  padding: .25em .6em; border-radius: 20px; margin: .15em .3em .15em 0;
+}
+.verdict.holds{ background: var(--true-soft); color: var(--true); }
+.verdict.fails{ background: var(--false-soft); color: var(--false); }
+.verdict::before{ content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+.controls{ display: flex; flex-wrap: wrap; gap: .6em; align-items: center; margin: .7em 0; }
+.controls label{ font-size: .82rem; color: var(--ink-soft); display: flex; align-items: center; gap: .4em; }
+.btn{
+  font-family: var(--font-body); font-size: .82rem; font-weight: 600;
+  padding: .5em .85em; border-radius: var(--radius);
+  border: 1px solid var(--line-strong); background: #fff; color: var(--ink);
+  cursor: pointer; transition: all .12s ease; line-height: 1.2;
+}
+.btn:hover{ border-color: var(--accent); color: var(--accent); }
+.btn.primary{ background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover{ background: #1c3f86; }
+.btn:disabled{ opacity: .4; cursor: not-allowed; }
+.btn-row{ display: flex; flex-wrap: wrap; gap: .5em; }
+
+select{
+  font-family: var(--font-mono); font-size: .82rem; padding: .35em .5em;
+  border: 1px solid var(--line-strong); border-radius: var(--radius); background:#fff; color: var(--ink);
+  max-width: 100%;
+}
+
+.readout{
+  font-family: var(--font-mono); font-size: .82rem;
+  background: var(--bg-inset); border-radius: var(--radius);
+  padding: .5em .7em; margin-top: .5em; min-height: 1.4em;
+}
+
+.example{ border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-bottom:.6em; }
+.example > summary{
+  cursor: pointer; padding: .7em .9em; font-weight: 600; font-family: var(--font-display);
+  background: var(--bg-inset); list-style: none; display:flex; align-items:center; gap:.5em;
+}
+.example > summary::-webkit-details-marker{ display:none; }
+.example > summary::before{ content: '▸'; color: var(--accent); font-size: .8em; }
+.example[open] > summary::before{ content: '▾'; }
+.example .example-body{ padding: .85em .95em; }
+.example .step{ margin: 0 0 .7em; padding-left: .9em; border-left: 2px solid var(--line); }
+.example .step:last-child{ margin-bottom: 0; }
+.example .step .step-label{ font-family: var(--font-mono); font-size: .74rem; color: var(--accent); display:block; margin-bottom:.15em; }
+
+table.data{ border-collapse: collapse; width: 100%; font-size: .88rem; }
+table.data th, table.data td{ border: 1px solid var(--line); padding: .5em .6em; text-align: left; vertical-align: top; }
+table.data th{ background: var(--bg-inset); font-family: var(--font-mono); font-weight:600; font-size:.78rem; }
+
+footer.page-footer{ text-align:center; font-size:.75rem; color: var(--ink-faint); padding: 2rem 1rem; }
+
+.quiz-step{
+  border:1px solid var(--line); border-radius: var(--radius); padding:.6em .8em; margin-bottom:.6em;
+  background: var(--bg-panel);
+}
+.quiz-step .quiz-stmt{ font-size:.9rem; margin-bottom:.4em; }
+
+.progress-pill{
+  display:inline-block; font-family: var(--font-mono); font-size:.72rem;
+  background: var(--bg-inset); border: 1px solid var(--line-strong); border-radius: 20px;
+  padding: .2em .7em; margin-bottom: .8em; color: var(--ink-soft);
+}
+
+/* ===== SCORE TRACKER (GitHub Pages Ready) ===== */
+.score-tracker {
+  position: fixed; bottom: 20px; right: 20px;
+  background: var(--bg-panel); border: 2px solid var(--accent);
+  border-radius: 8px; padding: 1em;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  font-family: var(--font-mono); font-size: .85rem;
+  z-index: 100; max-width: 220px;
+}
+.score-tracker .score-label { color: var(--ink-soft); display: block; margin-bottom: .3em; }
+.score-tracker .score-value { font-size: 1.8em; font-weight: 700; color: var(--accent); text-align: center; }
+.score-tracker .score-detail { color: var(--ink-faint); font-size: .75rem; text-align: center; margin-top: .5em; }
+.score-tracker button { width: 100%; margin-top: .7em; }
+
+@media (max-width: 600px) {
+  .score-tracker { bottom: 10px; right: 10px; max-width: 180px; font-size: .8rem; }
+  .score-tracker .score-value { font-size: 1.4em; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
+
+<div class="app-shell">
+
+  <header class="brand-bar">
+    <svg class="brand-mark" viewBox="0 0 26 26" fill="none" aria-hidden="true">
+      <circle cx="6" cy="20" r="1.7" fill="#fff"/>
+      <circle cx="20" cy="20" r="1.7" fill="#fff"/>
+      <circle cx="13" cy="5" r="1.7" fill="#fff"/>
+      <path d="M6 20L20 20M6 20L13 5M20 20L13 5" stroke="#8fa8d8" stroke-width="1.1"/>
+    </svg>
+    <div class="brand-text">
+      <span class="course">Geometría Euclidiana</span>
+      <span class="unit">Laboratorios · Unidad 2 — Lógica e incidencia</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="topic-nav" aria-label="Laboratorios de la unidad">
+      <div class="sidebar-brand">
+        <span class="course">Geometría Euclidiana</span>
+        <span class="unit">Laboratorios · Unidad 2 — Lógica e incidencia</span>
+      </div>
+      <ol id="nav-list"></ol>
+    </nav>
+
+    <main id="main-content"></main>
+  </div>
+
+  <footer class="page-footer">Laboratorios de práctica — complemento de la Unidad 2, Geometría Euclidiana. Para Classroom: guarda el enlace de esta página y créala como tarea de tipo "Link".</footer>
+</div>
+
+<!-- Score Tracker Widget -->
+<div class="score-tracker">
+  <div class="score-label">Puntuación total</div>
+  <div class="score-value" id="total-score">0 %</div>
+  <div class="score-detail" id="score-detail">0 / 0 completados</div>
+  <button class="btn primary" id="btn-export" style="display:none;">Copiar puntuación</button>
+</div>
+
+<script>
+"use strict";
+
+/* ==========================================================
+   SISTEMA DE PUNTUACIÓN (Global)
+   Funciona offline, guarda en localStorage
+   ========================================================== */
+const scoreSystem = {
+  labs: {
+    just1: { name: "Lab 1.1", max: 7, score: 0, completed: false },
+    just2: { name: "Lab 1.2", max: 6, score: 0, completed: false },
+    negadora: { name: "Lab 2", max: 4, score: 0, completed: false },
+    converso: { name: "Lab 3", max: 4, score: 0, completed: false },
+    reglas: { name: "Lab 4", max: 5, score: 0, completed: false }
+  },
+  updateScore(labId, points) {
+    if (this.labs[labId]) {
+      this.labs[labId].score = Math.max(0, Math.min(points, this.labs[labId].max));
+      this.labs[labId].completed = true;
+      this.render();
+      this.saveToLocalStorage();
+    }
+  },
+  getTotalPercentage() {
+    const totalMax = Object.values(this.labs).reduce((sum, lab) => sum + lab.max, 0);
+    const totalScore = Object.values(this.labs).reduce((sum, lab) => sum + lab.score, 0);
+    return totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
+  },
+  getCompletedCount() {
+    return Object.values(this.labs).filter(lab => lab.completed).length;
+  },
+  render() {
+    const pct = this.getTotalPercentage();
+    const completed = this.getCompletedCount();
+    document.getElementById('total-score').textContent = pct + ' %';
+    document.getElementById('score-detail').textContent = completed + ' / 5 laboratorios completados';
+    const btnExport = document.getElementById('btn-export');
+    if (completed > 0) btnExport.style.display = 'block';
+  },
+  exportScore() {
+    const msg = `Geometría Euclidiana - Laboratorios Unidad 2\nPuntuación total: ${this.getTotalPercentage()}%\n\nDetalle:\n` +
+      Object.entries(this.labs).map(([_, lab]) =>
+        `${lab.name}: ${lab.score} / ${lab.max}`
+      ).join('\n') +
+      `\n\nFecha: ${new Date().toLocaleString()}`;
+    navigator.clipboard.writeText(msg).then(() => {
+      alert('Puntuación copiada al portapapeles. ¡Pégala en la tarea de Classroom!');
+    }).catch(() => {
+      alert(msg);
+    });
+  },
+  saveToLocalStorage() {
+    try {
+      localStorage.setItem('lab-scores-u2', JSON.stringify(this.labs));
+    } catch (e) { /* offline o restricción */ }
+  },
+  loadFromLocalStorage() {
+    try {
+      const saved = localStorage.getItem('lab-scores-u2');
+      if (saved) this.labs = JSON.parse(saved);
+      this.render();
+    } catch (e) { /* offline */ }
+  }
+};
+
+scoreSystem.loadFromLocalStorage();
+document.getElementById('btn-export').addEventListener('click', () => scoreSystem.exportScore());
+
+/* ==========================================================
+   1. NAVEGACIÓN
+   ========================================================== */
+const SECTIONS = [
+  { id: "just",     label: "Lab. 1 · Justifica cada paso" },
+  { id: "negadora", label: "Lab. 2 · La negadora" },
+  { id: "converso", label: "Lab. 3 · Converso y contrarrecíproco" },
+  { id: "reglas",   label: "Lab. 4 · Reglas en acción" }
+];
+
+const renderers = {};
+
+function sectionHeader(num, kicker, title, lede){
+  return (
+    '<div class="section-head">' +
+      '<p class="section-kicker"><span class="tag">' + num + '</span>' + kicker + '</p>' +
+      '<h1>' + title + '</h1>' +
+      '<p class="lede">' + lede + '</p>' +
+    '</div>'
+  );
+}
+
+function typeset(main){
+  if (window.renderMathInElement){
+    try {
+      renderMathInElement(main, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "$", right: "$", display: false }
+        ],
+        throwOnError: false
+      });
+    } catch (e) { /* KaTeX no disponible */ }
+  }
+}
+
+const navList = document.getElementById("nav-list");
+SECTIONS.forEach((s, i) => {
+  const li = document.createElement("li");
+  const btn = document.createElement("button");
+  btn.innerHTML = '<span class="tag">' + (i + 1) + '</span>' + s.label;
+  btn.addEventListener("click", () => navigate(s.id));
+  li.appendChild(btn);
+  navList.appendChild(li);
+});
+
+function navigate(id){
+  const main = document.getElementById("main-content");
+  renderers[id](main);
+  const idx = SECTIONS.findIndex(s => s.id === id);
+  document.querySelectorAll("#nav-list button").forEach((b, i) => {
+    if (i === idx) b.setAttribute("aria-current", "true");
+    else b.removeAttribute("aria-current");
+  });
+  typeset(main);
+  window.scrollTo(0, 0);
+}
+
+/* ==========================================================
+   2. MOTOR GENÉRICO DE LABORATORIO
+   ========================================================== */
+function buildLab(cfg){
+  const wrap = document.getElementById(cfg.wrapId);
+  wrap.innerHTML = cfg.items.map((it, i) =>
+    '<div class="quiz-step">' +
+      '<div class="quiz-stmt"><strong>' + it.label + '</strong> ' + it.stmt + '</div>' +
+      '<label style="font-size:.8rem;color:var(--ink-soft)">' + (cfg.selectLabel || "Respuesta: ") +
+      '<select class="lab-sel" data-i="' + i + '">' +
+        it.options.map(o => '<option>' + o + '</option>').join("") +
+      '</select></label>' +
+      '<div class="lab-feed" style="margin-top:.3em"></div>' +
+    '</div>'
+  ).join("");
+
+  function verdict(reveal){
+    let score = 0;
+    cfg.items.forEach((it, i) => {
+      const sel = wrap.querySelectorAll(".lab-sel")[i];
+      const feed = wrap.querySelectorAll(".lab-feed")[i];
+      const val = reveal ? it.correct : sel.value;
+      if (reveal) sel.value = it.correct;
+      if (val === it.options[0]){
+        feed.innerHTML = '<span class="verdict fails">Sin elegir</span>';
+        return;
+      }
+      if (val === it.correct){
+        score++;
+        feed.innerHTML = '<span class="verdict holds">Correcto</span> <span style="font-size:.8rem;color:var(--ink-soft)">' + it.why + '</span>';
+      } else {
+        feed.innerHTML = '<span class="verdict fails">No: era ' + it.correct + '</span> <span style="font-size:.8rem;color:var(--ink-soft)">' + it.why + '</span>';
+      }
+    });
+
+    if (cfg.labId) {
+      scoreSystem.updateScore(cfg.labId, score);
+    }
+
+    document.getElementById(cfg.readoutId).innerHTML = (score === cfg.items.length)
+      ? '<span class="verdict holds">' + score + ' / ' + cfg.items.length + '</span> ' + cfg.successMsg
+      : '<span class="verdict fails">' + score + ' / ' + cfg.items.length + '</span> ' + cfg.failMsg;
+  }
+  document.getElementById(cfg.checkId).addEventListener("click", () => verdict(false));
+  document.getElementById(cfg.revealId).addEventListener("click", () => verdict(true));
+}
+
+/* ==========================================================
+   LAB 1 — JUSTIFICA CADA PASO
+   ========================================================== */
+const JUST_OPTS = ["— elegir —", "hipótesis", "axioma", "teorema previo", "definición", "paso anterior", "regla de lógica"];
+
+renderers.just = function(main){
+  main.innerHTML =
+    sectionHeader(1, "Laboratorio 1 de 4", "Justifica cada paso",
+      "La Regla 1 (Sección 2) admite exactamente seis tipos de justificación para un paso de una prueba. Dos demostraciones ya conocidas de la geometría de incidencia, paso a paso: para cada una, identifica de cuál de las seis se trata.") +
+
+    '<div class="callout idea">' +
+      '<span class="callout-label">Recordatorio — Regla 1</span>' +
+      'Cada paso de una prueba debe justificarse con exactamente una de estas seis razones: <strong>hipótesis</strong> (incluida una hipótesis temporal de RAA), <strong>axioma</strong>, <strong>teorema previo</strong>, <strong>definición</strong>, <strong>paso anterior</strong> de la misma prueba, o <strong>regla de lógica</strong> (Reglas 2–12).' +
+    '</div>' +
+
+    '<div class="panel">' +
+      '<span class="progress-pill">Prop. 2.2 — existen tres rectas distintas no concurrentes</span>' +
+      '<div id="just1-quiz"></div>' +
+      '<div class="btn-row" style="margin-top:.5em">' +
+        '<button class="btn" id="just1-check">Verificar</button>' +
+        '<button class="btn" id="just1-reveal">Revelar respuestas</button>' +
+      '</div>' +
+      '<div class="readout" id="just1-readout">Clasifica cada paso según la Regla 1.</div>' +
+    '</div>' +
+
+    '<div class="panel">' +
+      '<span class="progress-pill">Prop. 2.4 — todo punto tiene una recta que no pasa por él</span>' +
+      '<div id="just2-quiz"></div>' +
+      '<div class="btn-row" style="margin-top:.5em">' +
+        '<button class="btn" id="just2-check">Verificar</button>' +
+        '<button class="btn" id="just2-reveal">Revelar respuestas</button>' +
+      '</div>' +
+      '<div class="readout" id="just2-readout">Clasifica cada paso según la Regla 1.</div>' +
+    '</div>';
+
+  buildLab({
+    wrapId: "just1-quiz",
+    checkId: "just1-check", revealId: "just1-reveal", readoutId: "just1-readout",
+    selectLabel: "Tipo de justificación: ",
+    successMsg: "Las seis categorías de la Regla 1, reconocidas sin dudar.",
+    failMsg: "Revisa la Sección 2 (Regla 1) y vuelve a intentarlo.",
+    labId: "just1",
+    items: [
+      { label: "Paso 1.", stmt: "Por I3, existen tres puntos distintos $A$, $B$, $C$ no colineales.", options: JUST_OPTS, correct: "axioma", why: "I3 es un axioma de $\\Sigma$; se invoca directamente." },
+      { label: "Paso 2.", stmt: "Por I1 aplicado a cada par, existen las rectas $l=\\overline{AB}$, $m=\\overline{BC}$, $n=\\overline{CA}$.", options: JUST_OPTS, correct: "axioma", why: "De nuevo se invoca I1, esta vez tres veces." },
+      { label: "Paso 3.", stmt: "$l$, $m$, $n$ son distintas: si, por ejemplo, $l=n$, entonces $A,B,C$ estarían colineales, contradiciendo el paso 1.", options: JUST_OPTS, correct: "paso anterior", why: "La contradicción se apoya en lo ya establecido en el paso 1 de esta misma prueba." },
+      { label: "Paso 4.", stmt: "Supongamos, para RAA, que $l$, $m$, $n$ son concurrentes en un punto $P$.", options: JUST_OPTS, correct: "hipótesis", why: "Es la hipótesis temporal que abre una reducción al absurdo (Regla 2): se introduce como supuesto, no se deduce de nada." },
+      { label: "Paso 5.", stmt: "$P \\in l \\cap n$; como $l$ y $n$ comparten $A$, por la Proposición 2.1, $l \\cap n=\\{A\\}$, luego $P=A$.", options: JUST_OPTS, correct: "teorema previo", why: "Se usa la Proposición 2.1, ya demostrada antes en el curso." },
+      { label: "Paso 6.", stmt: "Del mismo modo, $P \\in l \\cap m=\\{B\\}$, luego $P=B$; entonces $A=B$, contradiciendo el paso 1.", options: JUST_OPTS, correct: "paso anterior", why: "La contradicción final vuelve a apoyarse en el paso 1, ya establecido en esta prueba." },
+      { label: "Paso 7.", stmt: "Luego $l$, $m$, $n$ no son concurrentes. $\\blacksquare$", options: JUST_OPTS, correct: "regla de lógica", why: "Cerrar la RAA —de una contradicción, negar la hipótesis temporal— es la Regla 2, una regla de lógica." }
+    ]
+  });
+
+  buildLab({
+    wrapId: "just2-quiz",
+    checkId: "just2-check", revealId: "just2-reveal", readoutId: "just2-readout",
+    selectLabel: "Tipo de justificación: ",
+    successMsg: "Perfecto: reconoces cuándo un paso se apoya en una definición y cuándo en un teorema previo.",
+    failMsg: "Con calma: revisa la diferencia entre «axioma», «definición» y «teorema previo».",
+    labId: "just2",
+    items: [
+      { label: "Paso 1.", stmt: "Sea $P$ un punto cualquiera. Por I3, existen tres puntos $A,B,C$ distintos, no colineales.", options: JUST_OPTS, correct: "axioma", why: "I3 garantiza la existencia de esos tres puntos." },
+      { label: "Paso 2.", stmt: "«No colineales» significa que ninguna recta incide con los tres a la vez.", options: JUST_OPTS, correct: "definición", why: "Es exactamente la definición de «colineales» (Sección 6), leída en negativo." },
+      { label: "Paso 3.", stmt: "Supongamos, para RAA, que $P$ pertenece a las tres rectas $\\overline{AB}$, $\\overline{BC}$, $\\overline{CA}$.", options: JUST_OPTS, correct: "hipótesis", why: "Hipótesis temporal de una reducción al absurdo (Regla 2)." },
+      { label: "Paso 4.", stmt: "Por la Proposición 2.1, $\\overline{AB} \\cap \\overline{CA}=\\{A\\}$; como $P$ está en ambas, $P=A$.", options: JUST_OPTS, correct: "teorema previo", why: "Se apoya en la Proposición 2.1, ya demostrada." },
+      { label: "Paso 5.", stmt: "Del mismo modo, $P \\in \\overline{AB}\\cap\\overline{BC}=\\{B\\}$, así que $P=B$; luego $A=B$, lo que contradice el paso 1.", options: JUST_OPTS, correct: "paso anterior", why: "La contradicción usa el paso 1 de esta misma prueba (que $A\\ne B$, por ser puntos distintos dados)." },
+      { label: "Paso 6.", stmt: "Por lo tanto, al menos una de las tres rectas no pasa por $P$. $\\blacksquare$", options: JUST_OPTS, correct: "regla de lógica", why: "Cierre de la RAA (Regla 2): de la contradicción se niega la hipótesis temporal del paso 3." }
+    ]
+  });
+};
+
+/* ==========================================================
+   LAB 2 — LA NEGADORA
+   ========================================================== */
+renderers.negadora = function(main){
+  main.innerHTML =
+    sectionHeader(2, "Laboratorio 2 de 4", "La negadora",
+      "Cuatro enunciados nuevos —dos son los propios axiomas de $\\Sigma$— para practicar las Reglas 3 a 7. El distractor más frecuente: negar de más o de menos.") +
+
+    '<div class="grid-2">' +
+      '<div class="stack">' +
+        '<div class="panel">' +
+          '<h3>Caja de herramientas (Secciones 5)</h3>' +
+          '<div class="rule-box"><span class="rule-tag">REGLA 5</span>De Morgan: $\\neg[S_1 \\lor S_2] \\equiv \\neg S_1 \\land \\neg S_2$.</div>' +
+          '<div class="rule-box"><span class="rule-tag">REGLA 6</span>$\\neg[\\forall x\\,S(x)] \\equiv \\exists x\\,\\neg S(x)$.</div>' +
+          '<div class="rule-box"><span class="rule-tag">REGLA 7</span>$\\neg[\\exists x\\,S(x)] \\equiv \\forall x\\,\\neg S(x)$.</div>' +
+          '<p style="font-size:.85rem;color:var(--ink-soft)">Los axiomas I2 e I3 son buenos ejercicios: cuantifican y, al negarlos, hay que decidir qué desigualdad numérica queda («a lo más uno», «todos en una misma recta»).</p>' +
+        '</div>' +
+      '</div>' +
+      '<div class="stack">' +
+        '<div class="panel">' +
+          '<div id="neg-lab-quiz"></div>' +
+          '<div class="btn-row" style="margin-top:.5em">' +
+            '<button class="btn" id="neg-lab-check">Verificar</button>' +
+            '<button class="btn" id="neg-lab-reveal">Revelar respuestas</button>' +
+          '</div>' +
+          '<div class="readout" id="neg-lab-readout">Elige la negación correcta de cada enunciado.</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  buildLab({
+    wrapId: "neg-lab-quiz",
+    checkId: "neg-lab-check", revealId: "neg-lab-reveal", readoutId: "neg-lab-readout",
+    successMsg: "Las cinco reglas de negación (3–7) ya no se te escapan.",
+    failMsg: "Repasa la Sección 5: negar ∀ da ∃¬ (Regla 6), negar ∃ da ∀¬ (Regla 7), negar ∨ da ∧ de negaciones (Regla 5).",
+    labId: "negadora",
+    items: [
+      {
+        label: "1.", stmt: "I2: «Toda recta tiene al menos dos puntos distintos sobre ella.»",
+        options: ["— elegir —", "Ninguna recta tiene dos puntos.", "Existe una recta con a lo más un punto sobre ella.", "Toda recta tiene como máximo un punto."],
+        correct: "Existe una recta con a lo más un punto sobre ella.",
+        why: "Regla 6: niega el «para toda recta» con un «existe una recta», y «al menos dos» se niega a «a lo más uno»."
+      },
+      {
+        label: "2.", stmt: "I3: «Existen tres puntos distintos que no están en una misma recta.»",
+        options: ["— elegir —", "No existen tres puntos distintos.", "Todo conjunto de tres puntos distintos está contenido en una misma recta.", "Existen tres puntos distintos en una misma recta."],
+        correct: "Todo conjunto de tres puntos distintos está contenido en una misma recta.",
+        why: "Regla 7: el «existen» se niega con un «para todo», y la condición «no están en una misma recta» se niega a «están en una misma recta»."
+      },
+      {
+        label: "3.", stmt: "«$l=m$ o $l$ y $m$ no tienen ningún punto en común» (es decir: $l=m$ o son paralelas).",
+        options: ["— elegir —", "$l \\ne m$ y $l$ y $m$ tienen un punto en común.", "$l = m$ y $l$ y $m$ no tienen puntos en común.", "$l \\ne m$ o $l$ y $m$ no tienen puntos en común."],
+        correct: "$l \\ne m$ y $l$ y $m$ tienen un punto en común.",
+        why: "Regla 5 (De Morgan sobre ∨): la negación de «$P$ o $Q$» es «no $P$ y no $Q$»."
+      },
+      {
+        label: "4.", stmt: "«Para toda recta $l$ y todo punto $P$ fuera de $l$, existe una recta paralela a $l$ que pasa por $P$.»",
+        options: ["— elegir —", "Existen una recta $l$ y un punto $P$ fuera de $l$ tales que ninguna recta paralela a $l$ pasa por $P$.", "Para toda recta $l$ y todo punto $P$ fuera de ella, ninguna paralela a $l$ pasa por $P$.", "Existe una recta $l$ tal que todo punto fuera de $l$ tiene una paralela que pasa por él."],
+        correct: "Existen una recta $l$ y un punto $P$ fuera de $l$ tales que ninguna recta paralela a $l$ pasa por $P$.",
+        why: "Regla 6 dos veces (sobre $l$ y sobre $P$) y luego Regla 7 sobre el «existe una recta paralela»: ambos ∀ se vuelven ∃, y el ∃ final se vuelve ∀¬."
+      }
+    ]
+  });
+};
+
+/* ==========================================================
+   LAB 3 — CONVERSO, NEGACIÓN, CONTRARRECÍPROCO Y TAUTOLOGÍA
+   ========================================================== */
+renderers.converso = function(main){
+  main.innerHTML =
+    sectionHeader(3, "Laboratorio 3 de 4", "Converso, negación, contrarrecíproco… y tautología",
+      "Afirmación base: «si $l$ y $m$ son paralelas, entonces $l$ y $m$ no tienen ningún punto en común» (parte de la definición de «paralelas», Sección 6). Clasifica cada variante — una de ellas ni siquiera transforma nada.") +
+
+    '<div class="grid-2">' +
+      '<div class="stack">' +
+        '<div class="panel">' +
+          '<h3>Las cuatro categorías</h3>' +
+          '<div class="rule-box"><span class="rule-tag">REGLA 4</span>Negación de $P\\Rightarrow Q$: es $P \\land \\neg Q$ — nunca otro condicional.</div>' +
+          '<div class="rule-box"><span class="rule-tag">REGLA 9c</span>Contrarrecíproco $\\neg Q \\Rightarrow \\neg P$: equivalente al original.</div>' +
+          '<div class="axiom-box"><span class="axiom-tag">converso</span>$Q \\Rightarrow P$: intercambia hipótesis y tesis, <strong>sin</strong> negar. No es equivalente al original en general.</div>' +
+          '<div class="axiom-box"><span class="axiom-tag">tautología</span>Regla 9b: $P \\land Q \\Rightarrow P$ es válida por su sola forma, sin importar qué digan $P$ y $Q$.</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="stack">' +
+        '<div class="panel">' +
+          '<div id="conv-lab-quiz"></div>' +
+          '<div class="btn-row" style="margin-top:.5em">' +
+            '<button class="btn" id="conv-lab-check">Verificar</button>' +
+            '<button class="btn" id="conv-lab-reveal">Revelar respuestas</button>' +
+          '</div>' +
+          '<div class="readout" id="conv-lab-readout">Clasifica cada afirmación frente a la base.</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  const OPTS = ["— elegir —", "negación", "converso", "contrarrecíproco", "tautología"];
+  buildLab({
+    wrapId: "conv-lab-quiz",
+    checkId: "conv-lab-check", revealId: "conv-lab-reveal", readoutId: "conv-lab-readout",
+    successMsg: "Distingues las cuatro formas sin dudar — incluida la trampa de la tautología.",
+    failMsg: "Mnemotecnia: negación niega sin intercambiar; converso intercambia sin negar; contrarrecíproco hace ambas cosas; la tautología no depende del contenido, solo de la forma.",
+    labId: "converso",
+    items: [
+      { label: "1.", stmt: "«Si $l$ y $m$ tienen un punto en común, entonces $l$ y $m$ no son paralelas.»", options: OPTS, correct: "contrarrecíproco", why: "Intercambia y niega ambas partes ($\\neg Q \\Rightarrow \\neg P$): por Regla 9c, equivalente a la base." },
+      { label: "2.", stmt: "«$l$ y $m$ son paralelas y tienen un punto en común.»", options: OPTS, correct: "negación", why: "Es $P \\land \\neg Q$: exactamente la negación del condicional (Regla 4)." },
+      { label: "3.", stmt: "«Si $l$ y $m$ no tienen ningún punto en común, entonces son paralelas.»", options: OPTS, correct: "converso", why: "Es $Q \\Rightarrow P$: intercambia sin negar. (Aquí además resulta verdadero, pero eso no es lo que define a un converso.)" },
+      { label: "4.", stmt: "«Si $l$ y $m$ son paralelas y $l$ pasa por el punto $A$, entonces $l$ y $m$ son paralelas.»", options: OPTS, correct: "tautología", why: "Tiene la forma $P \\land Q \\Rightarrow P$ (Regla 9b): válida sin importar qué signifiquen $P$ y $Q$, no aporta información nueva." }
+    ]
+  });
+};
+
+/* ==========================================================
+   LAB 4 — REGLAS EN ACCIÓN
+   ========================================================== */
+renderers.reglas = function(main){
+  main.innerHTML =
+    sectionHeader(4, "Laboratorio 4 de 4", "Reglas en acción",
+      "Cinco escenas tomadas de pruebas en curso. En cada una, alguien aplica —bien o mal— alguna de las Reglas 0 a 12. Identifica cuál.") +
+
+    '<div class="panel">' +
+      '<div id="reglas-lab-quiz"></div>' +
+      '<div class="btn-row" style="margin-top:.5em">' +
+        '<button class="btn" id="reglas-lab-check">Verificar</button>' +
+        '<button class="btn" id="reglas-lab-reveal">Revelar respuestas</button>' +
+      '</div>' +
+      '<div class="readout" id="reglas-lab-readout">Identifica la regla en uso en cada escena.</div>' +
+    '</div>' +
+
+    '<div class="callout history" style="margin-top:1rem">' +
+      '<span class="callout-label">Para repasar</span>' +
+      'La tabla completa de las Reglas 0–12, con su contenido y su uso típico, está en la Sección 6 de la Unidad 2 («Implicación, casos y las 12 reglas»).' +
+    '</div>';
+
+  const OPTS = ["— elegir —", "Regla 2 (RAA)", "Regla 8 (modus ponens)", "Regla 9c (contrarrecíproco)", "Regla 10 (tercero excluido)", "Regla 12 (igualdad)"];
+  buildLab({
+    wrapId: "reglas-lab-quiz",
+    checkId: "reglas-lab-check", revealId: "reglas-lab-reveal", readoutId: "reglas-lab-readout",
+    successMsg: "Cinco de cinco: reconoces las reglas sueltas de su contexto habitual, que es justo lo que se necesita en un examen.",
+    failMsg: "Vuelve a la tabla de referencia de la Sección 6 y reintenta.",
+    labId: "reglas",
+    items: [
+      { label: "Escena 1.", stmt: "En medio de una prueba, alguien escribe «$P \\in l$ o $P \\notin l$» sin haberlo deducido de ningún paso anterior.", options: OPTS, correct: "Regla 10 (tercero excluido)", why: "Ese paso no necesita deducirse: es válido para cualquier $P$ y $l$, por pura forma lógica." },
+      { label: "Escena 2.", stmt: "Alguien escribe: «como $A=B$ y $B=C$, entonces $A=C$.»", options: OPTS, correct: "Regla 12 (igualdad)", why: "Es la transitividad de la igualdad, parte de la Regla 12." },
+      { label: "Escena 3.", stmt: "Se tiene el axioma «$P\\ne Q \\Rightarrow \\exists!\\,l\\,(P\\in l \\land Q\\in l)$» (I1) y el paso «$P \\ne Q$»; se concluye que existe tal $l$.", options: OPTS, correct: "Regla 8 (modus ponens)", why: "De $H\\Rightarrow C$ y $H$, se deduce $C$: la aplicación más directa de un axioma condicional." },
+      { label: "Escena 4.", stmt: "Para probar $\\neg S$, alguien asume $S$ y deduce una contradicción con I3.", options: OPTS, correct: "Regla 2 (RAA)", why: "Asumir temporalmente lo que se quiere refutar y llegar a una contradicción es exactamente el esquema de la Regla 2." },
+      { label: "Escena 5.", stmt: "Alguien reescribe «si $S_1$ entonces $C$» como «si no $C$ entonces no $S_1$», para poder usar un resultado ya probado sobre esta segunda forma.", options: OPTS, correct: "Regla 9c (contrarrecíproco)", why: "Intercambiar y negar ambas partes de un condicional, apoyado en su equivalencia lógica, es la Regla 9c." }
+    ]
+  });
+};
+
+/* ==========================================================
+   ARRANQUE
+   ========================================================== */
+let _bootTries = 0;
+function boot(){
+  if (window.renderMathInElement || _bootTries > 50){ navigate(SECTIONS[0].id); return; }
+  _bootTries++; setTimeout(boot, 60);
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+else boot();
+</script>
+</body>
+</html>
