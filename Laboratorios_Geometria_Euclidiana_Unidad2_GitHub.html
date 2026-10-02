@@ -1374,8 +1374,8 @@ function showReportDialog(data, scores, finalScore){
 /* ===== Envío de calificaciones a Google Classroom (vía Google Apps Script) =====
  Pega aquí la URL de la aplicación web de Apps Script (termina en /exec) y la misma clave
  que pusiste en Code.gs. Si CLASSROOM_ENDPOINT está vacío, no se envía nada. */
-const CLASSROOM_ENDPOINT = '';
-const CLASSROOM_SECRET = 'CAMBIA-ESTA-CLAVE';
+const CLASSROOM_ENDPOINT = 'https://script.google.com/a/macros/utp.edu.co/s/AKfycbyudgWYuKXNuiE9nKMDDlo9dZwvNvNdPVIuiMYYyfDzjEbSQa5Wi6JSTSYdmU9pkxHFGQ/exec';
+const CLASSROOM_SECRET = '4321';
 
 function classroomPayload(){
  const d = authSystem.studentData;
