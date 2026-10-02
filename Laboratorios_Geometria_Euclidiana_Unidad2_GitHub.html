@@ -1370,7 +1370,30 @@ function showReportDialog(data, scores, finalScore){
  });
 }
 
+
+/* ===== Envío de calificaciones a Google Classroom (vía Google Apps Script) =====
+ Pega aquí la URL de la aplicación web de Apps Script (termina en /exec) y la misma clave
+ que pusiste en Code.gs. Si CLASSROOM_ENDPOINT está vacío, no se envía nada. */
+const CLASSROOM_ENDPOINT = '';
+const CLASSROOM_SECRET = 'CAMBIA-ESTA-CLAVE';
+
+function classroomPayload(){
+ const d = authSystem.studentData;
+ return { secret: CLASSROOM_SECRET, name: d.name, email: d.email, startTime: d.startTime,
+ scores: d.scores, final: authSystem.getTotalScore() };
+}
+async function sendGradesToClassroom(){
+ const d = authSystem.studentData;
+ if (!CLASSROOM_ENDPOINT || !d || d.classroomSent) return;
+ try {
+ await fetch(CLASSROOM_ENDPOINT, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(classroomPayload()) });
+ d.classroomSent = true;
+ localStorage.setItem('geom_student_session', JSON.stringify(d));
+ } catch (e) { /* sin conexión: se reintenta en la próxima carga */ }
+}
+
 function showCompletionModal() {
+ sendGradesToClassroom();
  const totalScore = authSystem.getTotalScore();
  const totalPercent = Math.round(totalScore * 20);
  const scores = authSystem.studentData.scores;
@@ -1428,6 +1451,7 @@ Promedio de las 4 secciones: ${finalScore.toFixed(2)} / 5.0
  ============================================================ */
 window.addEventListener('DOMContentLoaded', () => {
  if (authSystem.init()) {
+ if (Object.values(authSystem.studentData.completed).every(Boolean)) sendGradesToClassroom();
  document.getElementById('authModal').classList.add('hidden');
  updateProgressDashboard();
  navigate(SECTIONS[0].id);
