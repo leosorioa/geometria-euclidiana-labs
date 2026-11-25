@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tarea Centros del Triángulo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet">
+<style>
+/* Plan: página de trabajo para estudiantes. Pestañas arriba, contenido en una columna de lectura,
+   tablas con desplazamiento propio. Acento azul tinta; cuatro colores fijos para X(1)-X(4). */
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --ink:#1a2430; --muted:#5b6776; --line:#d9dfe7;
+  --accent:#1d57b5; --accent-soft:#e3ecfa; --ph:#fff1c2; --ph-ink:#6b4f00;
+  --ok:#17693a; --ok-soft:#dff3e6; --warn:#8a5a00; --warn-soft:#fdf0d2;
+  --c1:#1f6fd1; --c2:#1c8f4f; --c3:#c46a0a; --c4:#c2332f;
+  --disp:"Newsreader", Georgia, "Times New Roman", serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#10161d; --surface:#18202a; --ink:#e6ebf1; --muted:#9aa7b6; --line:#2b3644;
+    --accent:#6ea2f2; --accent-soft:#1e2c42; --ph:#4a3d10; --ph-ink:#ffe08a;
+    --ok:#6fd49a; --ok-soft:#173326; --warn:#f0c46a; --warn-soft:#3a2e12;
+    --c1:#6aa8ff; --c2:#5fd392; --c3:#f0a24a; --c4:#ff7d77;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#10161d; --surface:#18202a; --ink:#e6ebf1; --muted:#9aa7b6; --line:#2b3644;
+  --accent:#6ea2f2; --accent-soft:#1e2c42; --ph:#4a3d10; --ph-ink:#ffe08a;
+  --ok:#6fd49a; --ok-soft:#173326; --warn:#f0c46a; --warn-soft:#3a2e12;
+  --c1:#6aa8ff; --c2:#5fd392; --c3:#f0a24a; --c4:#ff7d77;
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55}
+h1,h2,h3{font-family:var(--disp);font-weight:600;line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:clamp(1.55rem,4vw,2.1rem)}
+h2{font-size:1.45rem;margin-bottom:.6rem}
+h3{font-size:1.1rem;margin:1.3rem 0 .4rem}
+p{margin:.5rem 0}
+a{color:var(--accent)}
+.wrap{max-width:980px;margin:0 auto;padding:0 18px}
+header{background:var(--surface);border-bottom:1px solid var(--line)}
+.top{padding:22px 0 10px}
+.eyebrow{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.sub{color:var(--muted);margin:.35rem 0 0;max-width:62ch}
+nav{display:flex;gap:4px;overflow-x:auto;padding:10px 0 0;scrollbar-width:thin}
+nav button{font:inherit;font-weight:500;color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;
+  padding:10px 14px;cursor:pointer;white-space:nowrap}
+nav button:hover{color:var(--ink)}
+nav button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+main{padding:22px 0 60px}
+section.panel{display:none}
+section.panel.on{display:block}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin:0 0 16px}
+.read{max-width:68ch}
+.ph{background:var(--ph);color:var(--ph-ink);padding:0 5px;border-radius:4px;font-weight:500}
+ol.steps{padding-left:1.3rem;margin:.5rem 0}
+ol.steps li{margin:.55rem 0}
+ul{padding-left:1.2rem}
+li{margin:.25rem 0}
+.tag{display:inline-block;font-size:.78rem;font-weight:600;padding:2px 9px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.tag.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.tag.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.callout{border-left:4px solid var(--accent);background:var(--accent-soft);padding:10px 14px;border-radius:0 8px 8px 0;margin:12px 0}
+/* explorador */
+.lab{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(240px,1fr);gap:16px;align-items:start}
+@media (max-width:760px){.lab{grid-template-columns:1fr}}
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;touch-action:none}
+.stage svg{display:block;width:100%;height:auto;cursor:default}
+.toggles{display:flex;flex-wrap:wrap;gap:8px 14px;margin:10px 0}
+.toggles label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.sw{width:12px;height:12px;border-radius:50%;display:inline-block}
+.read-out{font-variant-numeric:tabular-nums}
+.read-out dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 12px}
+.read-out dt{color:var(--muted)}
+.read-out dd{margin:0;font-weight:500}
+button.btn{font:inherit;font-weight:500;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer}
+button.btn.ghost{background:none;color:var(--accent);border:1px solid var(--accent)}
+:root[data-theme="dark"] button.btn:not(.ghost){color:#0b1320}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) button.btn:not(.ghost){color:#0b1320}}
+/* centros */
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+.chip{font:inherit;font-size:.9rem;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  border-radius:99px;padding:5px 13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .chip[aria-pressed="true"]{color:#0b1320}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chip[aria-pressed="true"]{color:#0b1320}}
+input[type="search"]{font:inherit;padding:7px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);min-width:200px;flex:1 1 200px;max-width:320px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:.93rem}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-size:.78rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);background:var(--bg);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td.n{font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+td .en{color:var(--muted);font-size:.85rem}
+tr.sel{background:var(--accent-soft)}
+.lvl{display:inline-block;min-width:22px;text-align:center;font-weight:600;border-radius:6px;padding:1px 7px;background:var(--bg);border:1px solid var(--line)}
+.pick{position:sticky;bottom:10px;margin-top:14px;background:var(--surface);border:1px solid var(--accent);border-radius:10px;padding:12px 16px;
+  display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;box-shadow:0 4px 18px rgba(0,0,0,.12)}
+.pick strong{font-variant-numeric:tabular-nums}
+.pick .list{flex:1 1 220px;min-width:0}
+.pick input[readonly]{font:inherit;width:100%;border:1px solid var(--line);border-radius:6px;padding:5px 8px;background:var(--bg);color:var(--ink)}
+.msg{min-height:1.3em;color:var(--muted);font-size:.9rem}
+/* rubrica */
+.score{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.big{font-family:var(--disp);font-size:2.2rem;font-weight:600;font-variant-numeric:tabular-nums}
+select{font:inherit;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);max-width:100%}
+details{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:2px 16px;margin:0 0 10px}
+summary{cursor:pointer;font-weight:600;padding:12px 0}
+details[open] summary{border-bottom:1px solid var(--line);margin-bottom:8px}
+.check li{list-style:none;margin:.4rem 0}
+.check{padding-left:0}
+.check label{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.check input{margin-top:.3rem;width:18px;height:18px;flex:none}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.9em;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+textarea{font:inherit;width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);resize:vertical}
+input[type="text"],input[type="number"]{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);width:100%}
+.form label{display:block;font-weight:500;margin:10px 0 4px}
+.form .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.draw{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.ball{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg)}
+.ball .bn{font-family:var(--disp);font-size:1.5rem;font-weight:600;font-variant-numeric:tabular-nums}
+.ball .bs{color:var(--muted);font-size:.85rem}
+.ball code{display:inline-block;margin-top:6px;font-size:.78rem}
+@media (prefers-reduced-motion: no-preference){ nav button{transition:color .15s,border-color .15s} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <p class="eyebrow">Geometría Euclidiana · Tarea individual</p>
+      <h1>Explorando la Enciclopedia de Centros del Triángulo con GeoGebra</h1>
+      <p class="sub">Cuatro centros de la ETC de Clark Kimberling, distintos de X(1) a X(4): tres te tocan por sorteo y uno lo eliges tú. Investígalos, constrúyelos y preséntalos.</p>
+    </div>
+    <nav role="tablist" aria-label="Secciones de la tarea">
+      <button role="tab" data-tab="tarea" aria-selected="true">Tarea</button>
+      <button role="tab" data-tab="explorador" aria-selected="false">Explorador X(1)–X(4)</button>
+      <button role="tab" data-tab="centros" aria-selected="false">Ejemplos por nivel</button>
+      <button role="tab" data-tab="sorteo" aria-selected="false">Sorteo</button>
+      <button role="tab" data-tab="rubrica" aria-selected="false">Rúbrica</button>
+      <button role="tab" data-tab="guia" aria-selected="false">Guía</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- TAREA -->
+<section class="panel on" id="tarea" aria-label="Tarea">
+  <div class="card read">
+    <h2>Qué debes hacer</h2>
+    <p>En clase construimos los cuatro centros clásicos: incentro X(1), baricentro X(2), circuncentro X(3) y ortocentro X(4). Un triángulo tiene muchos más. La <a href="https://faculty.evansville.edu/ck6/encyclopedia/etc.html" target="_blank" rel="noopener">Enciclopedia de Centros del Triángulo</a> (ETC) de Clark Kimberling los cataloga con un identificador X(n). Tu tarea es investigar cuatro de ellos: tres por sorteo y uno libre.</p>
+    <ol class="steps">
+      <li><strong>Recibe tus tres centros por sorteo.</strong> Cada estudiante recibe tres centros distintos de los clásicos, y ninguno se repite entre compañeros. Los verás en la pestaña <em>Sorteo</em>. Además, elige <strong>un centro libre</strong>: un X(n) de la ETC con n <strong>mayor que 3053</strong>, es decir, posterior al rango del sorteo. Su entrada en la ETC debe incluir una construcción geométrica; si solo da coordenadas, elige otro. Como <code>TriangleCenter</code> no llega hasta allá, lo compruebas con las coordenadas que da la entrada de la ETC. Explica en tu presentación por qué lo elegiste.</li>
+      <li><strong>Investiga</strong> cada uno de los cuatro centros en la ETC. Escribe su definición geométrica con tus palabras y elige una propiedad destacada (por ejemplo, una recta o un punto con el que se relaciona).</li>
+      <li><strong>Construye</strong> cada centro en GeoGebra a partir de su definición, con herramientas geométricas. No uses <code>TriangleCenter</code> para construirlo.</li>
+      <li><strong>Verifica</strong> con <code>TriangleCenter(A, B, C, n)</code> y arrastra los vértices, incluyendo un triángulo obtuso, para comprobar que tu construcción no se rompe.</li>
+      <li><strong>Presenta</strong> tu trabajo con diapositivas (8 a 10) en una exposición en vivo de 8 a 10 minutos. La presentación es obligatoria.</li>
+    </ol>
+  </div>
+  <div class="card read">
+    <h2>Qué entregas</h2>
+    <p>Súbelo a Classroom antes de la fecha asignada en Classroom.</p>
+    <ul>
+      <li>Archivo de GeoGebra (.ggb) o enlace a tu construcción, con los cuatro centros.</li>
+      <li>Tus diapositivas, como archivo o como enlace con permiso de lectura para el docente.</li>
+    </ul>
+    <p><strong>Evaluación:</strong> cinco criterios de 1,0 punto cada uno (pestaña <em>Rúbrica</em>). Cita la ETC y cualquier otra fuente que uses.</p>
+
+  </div>
+  <div class="callout read">
+    <strong>Sobre la notación X(n).</strong> El número es el índice del centro en la enciclopedia. Sigue sobre todo el orden en que cada centro fue incorporado, no una clasificación geométrica; por eso un número bajo no significa un centro más importante ni más fácil. Explícalo con tus palabras en tu presentación.
+  </div>
+</section>
+
+<!-- EXPLORADOR -->
+<section class="panel" id="explorador" aria-label="Explorador de centros clásicos">
+  <h2>Explorador de X(1) a X(4)</h2>
+  <p class="read">Arrastra los vértices A, B y C. Observa qué pasa con cada centro cuando el triángulo se vuelve rectángulo u obtuso. Es el mismo triángulo de la clase: A = (−4, −1), B = (5, −2), C = (1, 5).</p>
+  <div class="lab">
+    <div>
+      <div class="stage"><svg id="cv" viewBox="0 0 640 420" role="img" aria-label="Triángulo ABC con sus centros clásicos"></svg></div>
+      <div class="toggles" id="tg">
+        <label><input type="checkbox" data-k="I" checked><span class="sw" style="background:var(--c1)"></span>X(1) incentro</label>
+        <label><input type="checkbox" data-k="G" checked><span class="sw" style="background:var(--c2)"></span>X(2) baricentro</label>
+        <label><input type="checkbox" data-k="O" checked><span class="sw" style="background:var(--c3)"></span>X(3) circuncentro</label>
+        <label><input type="checkbox" data-k="H" checked><span class="sw" style="background:var(--c4)"></span>X(4) ortocentro</label>
+        <label><input type="checkbox" data-k="euler">Recta de Euler</label>
+        <label><input type="checkbox" data-k="incirc">Incircunferencia</label>
+        <label><input type="checkbox" data-k="circ">Circunferencia circunscrita</label>
+      </div>
+      <button class="btn ghost" id="reset" type="button">Volver al triángulo de clase</button>
+      <button class="btn ghost" id="right" type="button">Hacer recto el ángulo en C</button>
+    </div>
+    <div class="card read-out" aria-live="polite">
+      <h3 style="margin-top:0">Lo que ves</h3>
+      <dl id="ro"></dl>
+      <p class="msg" id="ro-note"></p>
+      <h3>Para pensar</h3>
+      <ul>
+        <li>¿Cuáles de los cuatro centros nunca salen del triángulo?</li>
+        <li>Usa el botón para hacer recto el ángulo en C. ¿Dónde caen O y H? Luego arrastra C un poco hacia afuera.</li>
+        <li>¿Qué razón hay entre HG y GO en cualquier triángulo?</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- CENTROS -->
+<section class="panel" id="centros" aria-label="Ejemplos por nivel">
+  <h2>Ejemplos de centros por nivel</h2>
+  <p class="read">Tus tres centros del sorteo pueden ser cualquiera de la ETC con n entre 5 y 3053; el centro libre es posterior a 3053. Esta lista de veintiún centros bien conocidos, con definiciones contrastadas con la ETC y con las páginas de Kimberling, sirve para que veas cómo se ve una definición y qué tipo de construcción esperar en cada nivel de dificultad.</p>
+  <div class="callout read"><strong>Antes de construir:</strong> abre la entrada del centro en la ETC y confirma su definición.</div>
+  <div class="callout read"><strong>Sobre X(13) y X(14).</strong> Los centros isogónicos existen en cualquier triángulo. X(13) coincide con el punto de Fermat, el que minimiza la suma de distancias a los vértices, solo si ningún ángulo supera 120°. Si arrastras un vértice más allá de eso, el punto de Fermat pasa al vértice obtuso y X(13) deja de ser el mínimo, aunque tu construcción siga siendo correcta.</div>
+  <div class="bar" role="group" aria-label="Filtrar por nivel">
+    <button class="chip" data-lvl="0" aria-pressed="true" type="button">Todos</button>
+    <button class="chip" data-lvl="1" aria-pressed="false" type="button">Nivel 1</button>
+    <button class="chip" data-lvl="2" aria-pressed="false" type="button">Nivel 2</button>
+    <button class="chip" data-lvl="3" aria-pressed="false" type="button">Nivel 3</button>
+    <button class="chip" data-lvl="4" aria-pressed="false" type="button">Nivel 4</button>
+    <label for="q" style="position:absolute;left:-9999px">Buscar centro</label>
+    <input type="search" id="q" placeholder="Buscar por nombre o número">
+  </div>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Nivel</th><th>X(n)</th><th>Nombre</th><th>Definición geométrica</th><th>Construcción</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <p class="read" style="color:var(--muted);font-size:.9rem">Nivel 1: una o dos construcciones auxiliares sobre lo visto en clase. Nivel 2: triángulos equiláteros, circunferencias exinscritas o reflexiones. Nivel 3: pasos auxiliares largos o herramientas nuevas. Nivel 4: retos. El comando TriangleCenter de GeoGebra funciona para n menor que 3054.</p>
+  <p class="read" style="color:var(--muted);font-size:.9rem">Definiciones contrastadas, entre otras, con las páginas de Kimberling sobre el <a href="https://faculty.evansville.edu/ck6/tcenters/recent/schiff.html" target="_blank" rel="noopener">punto de Schiffler</a>, el <a href="https://faculty.evansville.edu/ck6/tcenters/recent/clawpt.html" target="_blank" rel="noopener">punto de Clawson</a>, el <a href="https://faculty.evansville.edu/ck6/tcenters/recent/exeter.html" target="_blank" rel="noopener">punto de Exeter</a> y los <a href="https://faculty.evansville.edu/ck6/tcenters/class/isodyn.html" target="_blank" rel="noopener">puntos isodinámicos</a>. Abre siempre la entrada de tu centro en la ETC antes de construir.</p>
+</section>
+
+<!-- SORTEO -->
+<section class="panel" id="sorteo" aria-label="Sorteo de centros">
+  <h2>Tu sorteo</h2>
+  <p class="read">La ETC tiene decenas de miles de centros, y el comando TriangleCenter de GeoGebra llega hasta n = 3053. Para que nadie repita y la elección no dependa de qué centros son famosos, el docente sortea tres por estudiante dentro de ese rango, sin repetir entre compañeros y sin incluir X(1) a X(4). El cuarto centro lo eliges tú y debe ser posterior: n mayor que 3053.</p>
+  <div class="card">
+    <h3 style="margin-top:0">Mis centros</h3>
+    <div id="sd-me"></div>
+  </div>
+  <div class="callout read"><strong>Si tu entrada de la ETC no sirve.</strong> Si la entrada de un centro no da una definición geométrica ni una construcción a partir de otros centros, escríbele al docente: te asignará otro centro de reserva. El cambio no se pide por dificultad. Cada centro sale una sola vez en todo el grupo.</div>
+
+  
+</section>
+
+<!-- RUBRICA -->
+<section class="panel" id="rubrica" aria-label="Rúbrica">
+  <h2>Rúbrica (5 puntos)</h2>
+  <p class="read">Cinco criterios con el mismo peso. Condición de entrada: se califican los tres centros del sorteo y el centro libre; el sorteo no suma ni resta puntos. Usa el selector de cada fila para estimar tu nota antes de entregar.</p>
+  <div class="scroll">
+    <table style="min-width:900px" id="rub">
+      <thead><tr><th>Criterio</th><th>Excelente (1,0)</th><th>Bueno (0,75)</th><th>Básico (0,5)</th><th>Insuficiente (0 a 0,25)</th><th>Mi estimación</th></tr></thead>
+      <tbody>
+        <tr><td><strong>1. Definición geométrica de los 4 centros</strong></td>
+          <td>Las 4 definiciones son correctas, precisas y en palabras propias.</td>
+          <td>3 definiciones correctas, o las 4 con imprecisiones menores.</td>
+          <td>2 correctas, o copiadas casi literales de la ETC sin explicarlas.</td>
+          <td>Una o ninguna correcta.</td><td></td></tr>
+        <tr><td><strong>2. Construcción en GeoGebra</strong></td>
+          <td>Los 4 se construyen desde la definición, sin TriangleCenter, resisten el arrastre (también en triángulo obtuso), coinciden con TriangleCenter (en el centro libre, con las coordenadas de la ETC) y se justifica por qué la construcción produce el centro.</td>
+          <td>3 correctos, o los 4 con una falla menor (por ejemplo, se rompe en un obtuso).</td>
+          <td>2 correctos, o construcción por coordenadas o con TriangleCenter, sin pasos geométricos.</td>
+          <td>Uno o ninguno funciona, o no corresponde a la definición.</td><td></td></tr>
+        <tr><td><strong>3. Propiedad destacada</strong></td>
+          <td>En cada centro, una propiedad precisa, distinta de la definición e ilustrada en GeoGebra (colinealidad, razón de distancias, circunferencia asociada).</td>
+          <td>Propiedad correcta en los 4 pero sin ilustrar en alguno.</td>
+          <td>Propiedad en 2 centros, o vaga ("es un punto importante").</td>
+          <td>Ausente o incorrecta.</td><td></td></tr>
+        <tr><td><strong>4. Notación X(n) y fuentes</strong></td>
+          <td>Explica que X(n) es el índice en la ETC (orden de incorporación, no jerarquía geométrica) y cita la entrada de cada centro y otras fuentes.</td>
+          <td>Notación bien explicada con una imprecisión, o fuentes incompletas.</td>
+          <td>Notación mal explicada ("X(n) ordena por importancia") o casi sin fuentes.</td>
+          <td>Sin explicación ni fuentes.</td><td></td></tr>
+        <tr><td><strong>5. Presentación</strong></td>
+          <td>Estructura clara, 8 a 10 minutos, diapositivas legibles, usa GeoGebra con sentido y responde preguntas con seguridad.</td>
+          <td>Clara, con fallas menores de ritmo, tiempo (±2 min) o diseño.</td>
+          <td>Desordenada, lee las diapositivas o se pasa de tiempo (±4 min).</td>
+          <td>Confusa o no se puede seguir; no presenta (0).</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card score" style="margin-top:16px">
+    <div><div style="color:var(--muted);font-size:.85rem">Mi estimación</div><div class="big" id="total">0,00 / 5,00</div></div>
+    <div class="msg" id="evaluated" style="flex:1 1 200px">Elige un nivel en cada fila.</div>
+  </div>
+</section>
+
+<!-- GUIA -->
+<section class="panel" id="guia" aria-label="Guía del estudiante">
+  <h2>Guía para hacer la tarea</h2>
+  <p class="read">Cuatro pasos: buscar, leer, construir y comprobar.</p>
+
+  <details open><summary>Paso 1. Buscar un centro en la ETC</summary>
+    <ol class="steps">
+      <li>Abre la <a href="https://faculty.evansville.edu/ck6/encyclopedia/etc.html" target="_blank" rel="noopener">Enciclopedia de Centros del Triángulo</a>.</li>
+      <li>Está dividida en partes: la Parte 1 va de X(1) a X(1000), la Parte 2 de X(1001) a X(3000), la Parte 3 de X(3001) a X(5000), y así sucesivamente. Entra a la parte donde cae tu n.</li>
+      <li>Las páginas son muy largas. Usa Ctrl + F con el texto <code>X(11) =</code>, cambiando 11 por tu n. Si no aparece, busca el nombre del centro en inglés.</li>
+    </ol>
+  </details>
+
+  <details><summary>Paso 2. Leer una entrada</summary>
+    <ul>
+      <li><strong>El nombre.</strong> Si el centro no tiene nombre geométrico ni histórico, la ETC le pone nombre de una estrella. Es el nombre que citas.</li>
+      <li><strong>Coordenadas trilineales y baricéntricas.</strong> Describen el punto con álgebra. No las necesitas para construirlo, pero confirman que hablas del mismo punto.</li>
+      <li><strong>Relaciones con otros centros</strong>, escritas como "X(5) = punto medio de X(3) y X(4)" o "está en las rectas que unen ...". Son pistas de construcción a partir de centros que ya sabes hacer.</li>
+      <li><strong>Comentarios y referencias.</strong> Fuente para tu propiedad destacada.</li>
+    </ul>
+    <p>Si la entrada solo da coordenadas y no una definición geométrica, busca la definición en otra fuente confiable (por ejemplo MathWorld) y cítala. Si sigue sin haber una, consulta al docente: quizá conviene otro centro.</p>
+  </details>
+
+  <details><summary>Paso 3. Construirlo en GeoGebra</summary>
+    <ol class="steps">
+      <li>Crea un triángulo ABC agudo y escaleno, con ángulos menores que 120°. Puedes usar el de la clase.</li>
+      <li>Antes de construir, escribe la definición con tus palabras en una nota o en un cuaderno.</li>
+      <li>Construye con herramientas geométricas: Punto medio, Bisectriz, Mediatriz, Perpendicular, Circunferencia, Intersección, Reflexión. Apoyarte en centros ya construidos está permitido (por ejemplo, X(5) sale de X(3) y X(4)).</li>
+      <li>Dale un nombre y un color distinto a cada centro, y muestra solo lo necesario para que la figura se entienda.</li>
+      <li><strong>Prueba que resiste:</strong> arrastra los vértices, haz el triángulo obtuso y casi isósceles. Si el punto salta o desaparece, tu construcción depende de la figura y no de la definición.</li>
+    </ol>
+  </details>
+
+  <details><summary>Paso 4. Comprobar con TriangleCenter</summary>
+    <ol class="steps">
+      <li>En la barra de entrada escribe <code>TriangleCenter(A, B, C, n)</code> con tu n. Obtienes un punto, Q.</li>
+      <li>Mide <code>Distance(P, Q)</code>, con P tu construcción, y sube la precisión a 10 decimales (Opciones, Redondeo).</li>
+      <li>Arrastra los vértices. Si la distancia sigue siendo 0 en varios triángulos, tu construcción es probablemente correcta. Verificar no es demostrar: en la presentación explica por qué funciona.</li>
+      <li>Si no coinciden, revisa primero que construyes lo que dice la definición. En los centros que vienen de a pares (X(13) y X(14), X(15) y X(16), X(17) y X(18)) puede que GeoGebra te devuelva el otro del par; prueba cambiar el orden de los vértices y anótalo.</li>
+      <li>GeoGebra traduce los nombres de los comandos. Si tu interfaz está en español, el nombre puede ser distinto; escribe las primeras letras en la barra de entrada para ver el autocompletado, o cambia el idioma a inglés.</li>
+      <li>El comando solo existe para n menor que 3054. Para tu centro libre (n mayor que 3053), calcula el punto con las coordenadas baricéntricas de la entrada de la ETC y compáralo con tu construcción.</li>
+    </ol>
+  </details>
+
+  <h3>Lista de revisión antes de entregar</h3>
+  <ul class="check" id="chk">
+    <li><label><input type="checkbox" data-i="0"><span>Trabajé los tres centros del sorteo y mi centro libre, cuya entrada en la ETC incluye una construcción geométrica.</span></label></li>
+    <li><label><input type="checkbox" data-i="1"><span>Cada definición está escrita con mis palabras.</span></label></li>
+    <li><label><input type="checkbox" data-i="2"><span>Cada centro se construye sin TriangleCenter y resiste el arrastre, también en un triángulo obtuso.</span></label></li>
+    <li><label><input type="checkbox" data-i="3"><span>Comparé cada uno con TriangleCenter (el libre, con las coordenadas de la ETC) y medí la distancia.</span></label></li>
+    <li><label><input type="checkbox" data-i="4"><span>Tengo una propiedad destacada por centro y la ilusté en GeoGebra.</span></label></li>
+    <li><label><input type="checkbox" data-i="5"><span>Cité la ETC y mis otras fuentes, y explico qué significa X(n).</span></label></li>
+    <li><label><input type="checkbox" data-i="6"><span>Mi presentación tiene entre 8 y 10 diapositivas y dura entre 8 y 10 minutos.</span></label></li>
+  </ul>
+  <p class="msg" id="chkmsg"></p>
+</section>
+
+</main>
+
+<script>
+(function(){
+  "use strict";
+  /* ---------- utilidades ---------- */
+  function store(k, v){
+    try{
+      if(v === undefined){ var r = localStorage.getItem(k); return r ? JSON.parse(r) : null; }
+      localStorage.setItem(k, JSON.stringify(v));
+    }catch(e){ return null; }
+  }
+  function fmt(x, d){ return x.toFixed(d).replace(".", ","); }
+
+  /* ---------- pestañas ---------- */
+  var tabs = Array.prototype.slice.call(document.querySelectorAll("nav button"));
+  var panels = Array.prototype.slice.call(document.querySelectorAll("section.panel"));
+  function show(id, push){
+    if(!document.getElementById(id)) id = "tarea";
+    tabs.forEach(function(b){ b.setAttribute("aria-selected", b.dataset.tab === id ? "true" : "false"); });
+    panels.forEach(function(p){ p.classList.toggle("on", p.id === id); });
+    if(push){ try{ location.hash = id; }catch(e){} }
+    if(id === "explorador") drawLab();
+  }
+  tabs.forEach(function(b){ b.addEventListener("click", function(){ show(b.dataset.tab, true); }); });
+  window.addEventListener("hashchange", function(){ show((location.hash||"").slice(1)); });
+
+  /* ---------- explorador ---------- */
+  var svg = document.getElementById("cv");
+  var START = {A:{x:140,y:290}, B:{x:500,y:330}, C:{x:340,y:50}};
+  var P = JSON.parse(JSON.stringify(START));
+  var opts = {I:true,G:true,O:true,H:true,euler:false,incirc:false,circ:false};
+  Array.prototype.forEach.call(document.querySelectorAll("#tg input"), function(cb){
+    opts[cb.dataset.k] = cb.checked;
+    cb.addEventListener("change", function(){ opts[cb.dataset.k] = cb.checked; drawLab(); });
+  });
+  function dist(p,q){ return Math.hypot(p.x-q.x, p.y-q.y); }
+  function centers(){
+    var A=P.A,B=P.B,C=P.C;
+    var a=dist(B,C), b=dist(C,A), c=dist(A,B), s=a+b+c;
+    var area2 = (B.x-A.x)*(C.y-A.y)-(C.x-A.x)*(B.y-A.y);
+    if(Math.abs(area2) < 1500) return null;
+    var G={x:(A.x+B.x+C.x)/3, y:(A.y+B.y+C.y)/3};
+    var I={x:(a*A.x+b*B.x+c*C.x)/s, y:(a*A.y+b*B.y+c*C.y)/s};
+    var d = 2*(A.x*(B.y-C.y)+B.x*(C.y-A.y)+C.x*(A.y-B.y));
+    var a2=A.x*A.x+A.y*A.y, b2=B.x*B.x+B.y*B.y, c2=C.x*C.x+C.y*C.y;
+    var O={x:(a2*(B.y-C.y)+b2*(C.y-A.y)+c2*(A.y-B.y))/d, y:(a2*(C.x-B.x)+b2*(A.x-C.x)+c2*(B.x-A.x))/d};
+    var H={x:A.x+B.x+C.x-2*O.x, y:A.y+B.y+C.y-2*O.y};
+    var r = Math.abs(area2)/s, R = dist(O,A);
+    function ang(x,y,z){ var v=(y*y+z*z-x*x)/(2*y*z); return Math.acos(Math.max(-1,Math.min(1,v)))*180/Math.PI; }
+    return {a:a,b:b,c:c,G:G,I:I,O:O,H:H,r:r,R:R,angA:ang(a,b,c),angB:ang(b,c,a),angC:ang(c,a,b)};
+  }
+  function pt(p,col,lab,dx,dy){
+    return '<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="6" fill="'+col+'" stroke="var(--surface)" stroke-width="2"/>' +
+           '<text x="'+(p.x+dx).toFixed(1)+'" y="'+(p.y+dy).toFixed(1)+'" font-size="14" font-weight="600" fill="'+col+'">'+lab+'</text>';
+  }
+  function drawLab(){
+    var C = centers(), A=P.A, B=P.B, Cc=P.C, h="";
+    h += '<polygon points="'+[A,B,Cc].map(function(p){return p.x.toFixed(1)+","+p.y.toFixed(1);}).join(" ")+'" fill="var(--accent-soft)" fill-opacity=".55" stroke="var(--ink)" stroke-width="2" stroke-linejoin="round"/>';
+    if(C){
+      if(opts.circ) h += '<circle cx="'+C.O.x.toFixed(1)+'" cy="'+C.O.y.toFixed(1)+'" r="'+C.R.toFixed(1)+'" fill="none" stroke="var(--c3)" stroke-width="1.5" stroke-dasharray="5 4"/>';
+      if(opts.incirc) h += '<circle cx="'+C.I.x.toFixed(1)+'" cy="'+C.I.y.toFixed(1)+'" r="'+C.r.toFixed(1)+'" fill="none" stroke="var(--c1)" stroke-width="1.5"/>';
+      if(opts.euler){
+        var dx=C.G.x-C.O.x, dy=C.G.y-C.O.y, L=Math.hypot(dx,dy);
+        if(L>0.5){ var k=900/L; h += '<line x1="'+(C.O.x-dx*k).toFixed(1)+'" y1="'+(C.O.y-dy*k).toFixed(1)+'" x2="'+(C.O.x+dx*k).toFixed(1)+'" y2="'+(C.O.y+dy*k).toFixed(1)+'" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="2 4"/>'; }
+      }
+      if(opts.I) h += pt(C.I,"var(--c1)","X(1)",9,-8);
+      if(opts.G) h += pt(C.G,"var(--c2)","X(2)",9,-8);
+      if(opts.O) h += pt(C.O,"var(--c3)","X(3)",9,-8);
+      if(opts.H) h += pt(C.H,"var(--c4)","X(4)",9,-8);
+    }
+    [["A",A,-18,18],["B",B,10,18],["C",Cc,8,-10]].forEach(function(v){
+      h += '<circle data-v="'+v[0]+'" cx="'+v[1].x.toFixed(1)+'" cy="'+v[1].y.toFixed(1)+'" r="9" fill="var(--ink)" style="cursor:grab"/>' +
+           '<circle data-v="'+v[0]+'" cx="'+v[1].x.toFixed(1)+'" cy="'+v[1].y.toFixed(1)+'" r="22" fill="transparent" style="cursor:grab"/>' +
+           '<text x="'+(v[1].x+v[2]).toFixed(1)+'" y="'+(v[1].y+v[3]).toFixed(1)+'" font-size="17" font-weight="600" fill="var(--ink)" pointer-events="none">'+v[0]+'</text>';
+    });
+    svg.innerHTML = h;
+    readout(C);
+  }
+  function readout(C){
+    var ro = document.getElementById("ro"), note = document.getElementById("ro-note");
+    if(!C){ ro.innerHTML = ""; note.textContent = "Los tres vértices están casi alineados: no hay triángulo."; return; }
+    var m = Math.max(C.angA, C.angB, C.angC), kind;
+    if(Math.abs(m-90) < 0.6) kind = "rectángulo"; else if(m > 90) kind = "obtuso"; else kind = "agudo";
+    var rows = [["Tipo", kind],
+      ["Ángulos", "A "+fmt(C.angA,1)+"°, B "+fmt(C.angB,1)+"°, C "+fmt(C.angC,1)+"°"],
+      ["X(1) y X(2)", "siempre dentro del triángulo"],
+      ["X(3) circuncentro", kind==="agudo" ? "dentro" : kind==="rectángulo" ? "en el punto medio de la hipotenusa" : "fuera"],
+      ["X(4) ortocentro", kind==="agudo" ? "dentro" : kind==="rectángulo" ? "en el vértice del ángulo recto" : "fuera"]];
+    var gh = dist(C.G,C.H), go = dist(C.G,C.O);
+    rows.push(["HG : GO", go < 0.5 ? "O, G y H coinciden" : fmt(gh/go,2)+" : 1"]);
+    ro.innerHTML = rows.map(function(r){ return "<dt>"+r[0]+"</dt><dd>"+r[1]+"</dd>"; }).join("");
+    note.textContent = "";
+  }
+  var dragging = null;
+  function toLocal(e){
+    var pt0 = svg.createSVGPoint(); pt0.x = e.clientX; pt0.y = e.clientY;
+    var m = svg.getScreenCTM(); if(!m) return null;
+    var q = pt0.matrixTransform(m.inverse());
+    return {x:Math.max(20,Math.min(620,q.x)), y:Math.max(20,Math.min(400,q.y))};
+  }
+  svg.addEventListener("pointerdown", function(e){
+    var v = e.target && e.target.dataset ? e.target.dataset.v : null;
+    if(!v) return;
+    dragging = v;
+    try{ svg.setPointerCapture(e.pointerId); }catch(err){}
+    e.preventDefault();
+  });
+  svg.addEventListener("pointermove", function(e){
+    if(!dragging) return;
+    var q = toLocal(e); if(!q) return;
+    P[dragging] = q; drawLab();
+  });
+  function endDrag(){ dragging = null; }
+  svg.addEventListener("pointerup", endDrag);
+  svg.addEventListener("pointercancel", endDrag);
+  document.getElementById("reset").addEventListener("click", function(){ P = JSON.parse(JSON.stringify(START)); drawLab(); });
+  document.getElementById("right").addEventListener("click", function(){
+    var M = {x:(P.A.x+P.B.x)/2, y:(P.A.y+P.B.y)/2}, rad = dist(P.A,P.B)/2;
+    var v = {x:P.C.x-M.x, y:P.C.y-M.y}, L = Math.hypot(v.x,v.y) || 1;
+    P.C = {x:Math.max(20,Math.min(620,M.x+v.x/L*rad)), y:Math.max(20,Math.min(400,M.y+v.y/L*rad))};
+    drawLab();
+  });
+
+  /* ---------- ejemplos por nivel ---------- */
+  var DATA = [
+    [1,5,"Centro de nueve puntos","Nine-point center","Centro de la circunferencia de los nueve puntos; es el punto medio entre X(3) y X(4).","Regla y compás"],
+    [1,10,"Centro de Spieker","Spieker center","Incentro del triángulo medial, el formado por los puntos medios de los lados.","Regla y compás"],
+    [1,20,"Punto de De Longchamps","De Longchamps point","Reflexión del ortocentro respecto del circuncentro.","Regla y compás"],
+    [1,40,"Punto de Bevan","Bevan point","Circuncentro del triángulo excentral; equivale a reflejar el incentro respecto del circuncentro.","Regla y compás"],
+    [1,7,"Punto de Gergonne","Gergonne point","Concurrencia de las rectas que unen cada vértice con el punto de tangencia de la incircunferencia con el lado opuesto.","Regla y compás"],
+    [1,13,"Primer centro isogónico (punto de Fermat si ningún ángulo supera 120°)","First isogonic center","Concurrencia de las rectas que unen cada vértice con el vértice libre del triángulo equilátero levantado hacia afuera sobre el lado opuesto.","Regla y compás"],
+    [1,14,"Segundo centro isogónico","Second isogonic center","Concurrencia de las rectas que unen cada vértice con el vértice libre del triángulo equilátero levantado hacia adentro sobre el lado opuesto.","Regla y compás"],
+    [2,8,"Punto de Nagel","Nagel point","Concurrencia de las rectas que unen cada vértice con el punto del lado opuesto que reparte el perímetro en dos mitades (punto de tangencia de la excircunferencia con ese lado).","Regla y compás"],
+    [2,17,"Primer punto de Napoleón","First Napoleon point","Concurrencia de las rectas que unen cada vértice con el centro del triángulo equilátero levantado hacia afuera sobre el lado opuesto.","Regla y compás"],
+    [2,18,"Segundo punto de Napoleón","Second Napoleon point","Lo mismo que X(17), con los triángulos equiláteros hacia adentro.","Regla y compás"],
+    [2,6,"Punto simediano o de Lemoine","Symmedian point","Concurrencia de las simedianas, es decir, las reflexiones de cada mediana respecto de la bisectriz del mismo vértice.","Regla y compás"],
+    [2,9,"Mittenpunkt","Mittenpunkt","Punto simediano del triángulo formado por los tres excentros.","Regla y compás"],
+    [2,11,"Punto de Feuerbach","Feuerbach point","Punto de tangencia de la circunferencia de nueve puntos con la incircunferencia; está en la recta que une X(1) y X(5).","Regla y compás"],
+    [3,15,"Primer punto isodinámico","First isodynamic point","Una de las dos intersecciones de las tres circunferencias de Apolonio: la de trilineales sen(A + 60°). Es el conjugado isogónico de X(13). Comprueba cuál de los dos puntos es con TriangleCenter(A, B, C, 15).","Regla y compás, laboriosa (circunferencia de diámetro UV, con U y V los pies de las bisectrices interior y exterior)"],
+    [3,16,"Segundo punto isodinámico","Second isodynamic point","La otra intersección de las circunferencias de Apolonio, de trilineales sen(A − 60°). Es el conjugado isogónico de X(14).","Regla y compás, laboriosa (misma construcción que X(15))"],
+    [3,21,"Punto de Schiffler","Schiffler point","Punto común de las rectas de Euler de los triángulos ABC, IBC, ICA e IAB, con I el incentro.","Regla y compás, con muchos pasos auxiliares"],
+    [3,54,"Punto de Kosnita","Kosnita point","Conjugado isogónico del centro de nueve puntos; también, concurrencia de las rectas que unen cada vértice con el circuncentro del triángulo formado por O y los otros dos vértices.","Regla y compás, laboriosa"],
+    [3,39,"Punto medio de Brocard","Brocard midpoint","Punto medio de los dos puntos de Brocard.","Regla y compás, laboriosa (primero hay que construir los puntos de Brocard)"],
+    [4,19,"Punto de Clawson","Clawson point","Centro de homotecia del triángulo órtico y del triángulo extangente, formado por las tangentes exteriores a las tres excircunferencias.","Regla y compás, laboriosa"],
+    [4,22,"Punto de Exeter","Exeter point","Perspector del triángulo tangencial y del triángulo circunmedial.","Regla y compás, laboriosa"],
+    [4,356,"Centro de Morley","Morley center","Centro de la circunferencia de Morley, es decir, centro del triángulo equilátero que forman las trisectrices adyacentes.","Herramientas de GeoGebra (la trisección no se hace con regla y compás)"]
+  ];
+  var tb = document.getElementById("tb"), q = document.getElementById("q"), lvl = 0;
+  function norm(s){ return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""); }
+  function renderTable(){
+    var term = norm(q.value.trim());
+    tb.innerHTML = "";
+    DATA.forEach(function(d){
+      if(lvl && d[0] !== lvl) return;
+      if(term && norm("x("+d[1]+") "+d[1]+" "+d[2]+" "+d[3]).indexOf(term) < 0) return;
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td><span class="lvl">'+d[0]+'</span></td>'+
+        '<td class="n">X('+d[1]+')</td>'+
+        '<td>'+d[2]+'<div class="en">'+d[3]+'</div></td>'+
+        '<td>'+d[4]+'</td><td>'+d[5]+'</td>';
+      tb.appendChild(tr);
+    });
+    if(!tb.children.length){ tb.innerHTML = '<tr><td colspan="5">Ningún centro coincide con tu búsqueda.</td></tr>'; }
+  }
+  Array.prototype.forEach.call(document.querySelectorAll(".chip"), function(c){
+    c.addEventListener("click", function(){
+      lvl = +c.dataset.lvl;
+      Array.prototype.forEach.call(document.querySelectorAll(".chip"), function(o){ o.setAttribute("aria-pressed", o === c ? "true" : "false"); });
+      renderTable();
+    });
+  });
+  q.addEventListener("input", renderTable);
+
+  /* ---------- sorteo sin repetición ---------- */
+  /* CONFIG-INICIO (el docente pega aquí el bloque que genera la herramienta; vacío: la vista del estudiante avisa) */
+  var SEED = "etc-geometria-2026-2";
+  var ROSTER = ["Santiago Agudelo Catano", "Laura Camila Castro Perez", "Mayerly Yojana Cuastumal Guaitarilla", "Maria Camila Garcia Escobar", "Julio Cesar Giraldo Zapata", "Jhonathan David Granada Arenas", "Andres Mauricio Henao Ocampo", "Julian Antonio Hernandez Castillo", "Juan Alejandro Largo Trejos", "Libaniel Llanten", "Valeria Millan Sanchez", "Laura Sofia Munoz Gutierrez", "Juan Guillermo Obando Henao", "David Santiago Ochoa Franco", "Erlin Julian Quesada Pinzon", "Juan Camilo Rodriguez Sarchi", "Luis Miguel Samboni", "Nicol Stefany Sanchez Varon", "Sebastian Segura Benitez", "Ingrith Valeria Torrente Arciniegas", "Camilo Reinaldo Velasquez Salazar", "Victor Wallyth Villa Alandete"];
+  var ROSTER_H = [];
+  var PARAMS = {min:5, max:3053, excl:[], per:3, res:2};
+  /* CONFIG-FIN */
+  function xmur3(str){
+    var h2 = 1779033703 ^ str.length, i;
+    for(i = 0; i < str.length; i++){ h2 = Math.imul(h2 ^ str.charCodeAt(i), 3432918353); h2 = h2 << 13 | h2 >>> 19; }
+    return function(){ h2 = Math.imul(h2 ^ h2 >>> 16, 2246822507); h2 = Math.imul(h2 ^ h2 >>> 13, 3266489909); return (h2 ^= h2 >>> 16) >>> 0; };
+  }
+  function mulberry32(a){
+    return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+  function makePool(min, max, excl, seed){
+    var ex = {1:1,2:1,3:1,4:1}, arr = [], n, i, j, t;
+    excl.forEach(function(e){ ex[e] = 1; });
+    for(n = min; n <= max; n++){ if(!ex[n]) arr.push(n); }
+    var rnd = mulberry32(xmur3(seed)());
+    for(i = arr.length - 1; i > 0; i--){ j = Math.floor(rnd() * (i + 1)); t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+    return arr;
+  }
+  /* Centros del estudiante i: tramo i*per desde el inicio. Reservas: desde el final. Los dos tramos no se cruzan. */
+  function assign(names, per, res, arr){
+    return names.map(function(name, i){
+      var main = [], rsv = [], k, r;
+      for(k = 0; k < per; k++) main.push(arr[i*per + k]);
+      for(r = 0; r < res; r++) rsv.push(arr[arr.length - 1 - (i*res + r)]);
+      return {name:name, main:main, res:rsv};
+    });
+  }
+  function partOf(n){ return n <= 1000 ? 1 : (n <= 3000 ? 2 : 3); }
+  /* Hash de 53 bits (cyrb53). No es criptográfico: solo evita dejar los códigos a la vista en el código de la página. */
+  function cyrb53(str){
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57, i, ch;
+    for(i = 0; i < str.length; i++){ ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  }
+  function normCode(c){ return String(c).replace(/\s+/g, "").toLowerCase(); }
+  function hashCode(code, seed){ return cyrb53(normCode(code) + "|" + seed).toString(36); }
+
+  function foldName(x){ return String(x).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim(); }
+  function showBalls(i, arr, outEl, rsEl){
+    var main = [], rsv = [], k;
+    for(k = 0; k < PARAMS.per; k++) main.push(arr[i*PARAMS.per + k]);
+    for(k = 0; k < PARAMS.res; k++) rsv.push(arr[arr.length - 1 - (i*PARAMS.res + k)]);
+    outEl.innerHTML = main.map(function(n){
+      return '<div class="ball"><div class="bn">X('+n+')</div><div class="bs">Parte '+partOf(n)+' de la ETC</div><code>TriangleCenter(A, B, C, '+n+')</code></div>';
+    }).join("");
+    rsEl.innerHTML = rsv.length ? '<details style="margin-top:12px"><summary>Centros de reserva (úsalos solo si el docente te autoriza el cambio)</summary><p class="read">' +
+      rsv.map(function(n){ return "X("+n+")"; }).join(", ") + '</p></details>' : "";
+  }
+  function drawByName(box){
+    var arr = makePool(PARAMS.min, PARAMS.max, PARAMS.excl, SEED);
+    box.innerHTML = '<label for="sd-find" style="font-weight:500">Busca tu nombre o tu apellido</label> ' +
+      '<input type="search" id="sd-find" autocomplete="off" style="max-width:320px"> ' +
+      '<div id="sd-opts" role="listbox" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>' +
+      '<p class="msg" id="sd-memsg" aria-live="polite"></p>' +
+      '<h3 id="sd-who2" style="margin:14px 0 0"></h3><div class="draw" id="sd-balls" style="margin-top:8px"></div><div id="sd-rsv"></div>';
+    var inp = document.getElementById("sd-find"), opts = document.getElementById("sd-opts"), m = document.getElementById("sd-memsg");
+    function clearOut(){ document.getElementById("sd-balls").innerHTML = ""; document.getElementById("sd-rsv").innerHTML = ""; document.getElementById("sd-who2").textContent = ""; }
+    inp.addEventListener("input", function(){
+      var q = foldName(inp.value); opts.innerHTML = ""; m.textContent = ""; clearOut();
+      if(q.length < 2) return;
+      var hits = [];
+      ROSTER.forEach(function(nm, i){ if(foldName(nm).indexOf(q) >= 0) hits.push(i); });
+      if(!hits.length){ m.textContent = "No encuentro ese nombre. Prueba solo con un apellido o escríbele al docente."; return; }
+      hits.forEach(function(i){
+        var b = document.createElement("button"); b.type = "button"; b.className = "btn"; b.textContent = ROSTER[i];
+        b.addEventListener("click", function(){
+          document.getElementById("sd-who2").textContent = ROSTER[i];
+          showBalls(i, arr, document.getElementById("sd-balls"), document.getElementById("sd-rsv"));
+        });
+        opts.appendChild(b);
+      });
+      if(hits.length === 1) opts.firstChild.click();
+    });
+  }
+  function drawMe(){
+    var box = document.getElementById("sd-me");
+    if(ROSTER.length && SEED){ drawByName(box); return; }
+    if(!ROSTER_H.length || !SEED){
+      box.innerHTML = '<p>El docente todavía no cargó la lista del curso en esta página. Consulta tus centros en <span class="ph">[ENLACE A LA HOJA DE ASIGNACIONES]</span>.</p>';
+      return;
+    }
+    var arr = makePool(PARAMS.min, PARAMS.max, PARAMS.excl, SEED);
+    box.innerHTML = '<form id="sd-form" autocomplete="off"><label for="sd-code" style="font-weight:500">Escribe tu código de estudiante</label> ' +
+      '<input type="text" id="sd-code" inputmode="text" style="max-width:220px"> <button class="btn" type="submit">Ver mis centros</button></form>' +
+      '<p class="msg" id="sd-memsg" aria-live="polite"></p><div class="draw" id="sd-balls" style="margin-top:12px"></div><div id="sd-rsv"></div>';
+    document.getElementById("sd-form").addEventListener("submit", function(ev){
+      ev.preventDefault();
+      var code = document.getElementById("sd-code").value, m = document.getElementById("sd-memsg");
+      var out = document.getElementById("sd-balls"), rs = document.getElementById("sd-rsv");
+      out.innerHTML = ""; rs.innerHTML = ""; m.textContent = "";
+      if(!normCode(code)){ m.textContent = "Escribe tu código."; return; }
+      var i = ROSTER_H.indexOf(hashCode(code, SEED));
+      if(i < 0){ m.textContent = "No encuentro ese código. Revisa que no tenga espacios de más o escríbele al docente."; return; }
+      var k;
+      var main = [], rsv = [];
+      for(k = 0; k < PARAMS.per; k++) main.push(arr[i*PARAMS.per + k]);
+      for(k = 0; k < PARAMS.res; k++) rsv.push(arr[arr.length - 1 - (i*PARAMS.res + k)]);
+      out.innerHTML = main.map(function(n){
+        return '<div class="ball"><div class="bn">X('+n+')</div><div class="bs">Parte '+partOf(n)+' de la ETC</div><code>TriangleCenter(A, B, C, '+n+')</code></div>';
+      }).join("");
+      if(rsv.length){
+        rs.innerHTML = '<details style="margin-top:12px"><summary>Centros de reserva (úsalos solo si el docente te autoriza el cambio)</summary><p class="read">' +
+          rsv.map(function(n){ return "X("+n+")"; }).join(", ") + '</p></details>';
+      }
+    });
+  }
+
+  function intList(s){
+    return s.split(/[,;\s]+/).map(function(x){ return parseInt(x, 10); }).filter(function(x){ return isFinite(x); });
+  }
+  function runDocente(){
+    if(!document.getElementById("sd-roster")) return;
+    var msg = document.getElementById("sd-msg"), head = document.getElementById("sd-head"), body = document.getElementById("sd-out");
+    var lines = document.getElementById("sd-roster").value.split(/\r?\n/).map(function(s){ return s.trim(); }).filter(Boolean);
+    var codes = lines.map(function(l){ return l.split(/[;\t]/)[0].trim(); });
+    var names = lines.map(function(l){ var p = l.split(/[;\t]/); return (p[1] ? p[1].trim() : p[0].trim()); });
+    var cfg = document.getElementById("sd-cfg"); cfg.value = "";
+    var seed = document.getElementById("sd-seed").value.trim();
+    var mn = Math.max(5, parseInt(document.getElementById("sd-min").value, 10) || 5);
+    var mx = Math.min(3053, parseInt(document.getElementById("sd-max").value, 10) || 3053);
+    var per = Math.max(1, parseInt(document.getElementById("sd-per").value, 10) || 4);
+    var res = Math.max(0, parseInt(document.getElementById("sd-res").value, 10) || 0);
+    var ex = intList(document.getElementById("sd-ex").value);
+    head.innerHTML = ""; body.innerHTML = ""; msg.textContent = "";
+    if(!seed){ msg.textContent = "Escribe una semilla."; return; }
+    if(!names.length){ msg.textContent = "Escribe al menos un código."; return; }
+    var seen = {}, dup = codes.filter(function(n){ var k = normCode(n); if(seen[k]) return true; seen[k] = 1; return false; });
+    if(dup.length){ msg.textContent = "Código repetido en la lista: " + dup[0] + ". Cada estudiante necesita un código distinto."; return; }
+    var arr = makePool(mn, mx, ex, seed);
+    var need = names.length * (per + res);
+    if(need > arr.length){
+      msg.textContent = "No alcanzan los centros: hacen falta " + need + " y el rango solo tiene " + arr.length + ". Amplía el rango o reduce centros y reservas.";
+      return;
+    }
+    var rows = assign(names, per, res, arr);
+    var all = [], u = {}, ok = true;
+    rows.forEach(function(r){ r.main.concat(r.res).forEach(function(n){ if(u[n]) ok = false; u[n] = 1; }); });
+    var cols = ["Estudiante"], k;
+    for(k = 1; k <= per; k++) cols.push("Centro " + k);
+    for(k = 1; k <= res; k++) cols.push("Reserva " + k);
+    head.innerHTML = "<tr>" + cols.map(function(c){ return "<th>" + c + "</th>"; }).join("") + "</tr>";
+    var tsv = [cols.join("\t")];
+    rows.forEach(function(r){
+      var cells = r.main.concat(r.res).map(function(n){ return "X(" + n + ")"; });
+      var tr = document.createElement("tr");
+      var th = document.createElement("td"); th.textContent = r.name; tr.appendChild(th);
+      cells.forEach(function(c, idx){
+        var td = document.createElement("td"); td.className = "n"; td.textContent = c;
+        if(idx >= per) td.style.color = "var(--muted)";
+        tr.appendChild(td);
+      });
+      body.appendChild(tr);
+      tsv.push([r.name].concat(cells).join("\t"));
+    });
+    document.getElementById("sd-copy").dataset.tsv = tsv.join("\n");
+    if(ok){
+      cfg.value = 'var SEED = ' + JSON.stringify(seed) + ';\n' +
+        'var ROSTER = ' + JSON.stringify(names) + ';\n' +
+        'var ROSTER_H = [];\n' +
+        'var PARAMS = ' + JSON.stringify({min:mn, max:mx, excl:ex, per:per, res:res}) + ';';
+    }
+    msg.textContent = ok ? (rows.length + " estudiantes, " + (per*rows.length) + " centros asignados y " + (res*rows.length) + " de reserva. Ningún centro se repite.") : "Error interno: hay un centro repetido.";
+  }
+  function copyFrom(btnId, getTxt, okMsg){
+   var bt = document.getElementById(btnId); if(!bt) return;
+   bt.addEventListener("click", function(){
+    var txt = getTxt(), msg = document.getElementById("sd-msg");
+    if(!txt){ return; }
+    var fail = function(){ msg.textContent = "No pude copiar automáticamente. Selecciona la tabla y cópiala con Ctrl + C."; };
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(txt).then(function(){ msg.textContent = okMsg; }, fail);
+      } else fail();
+    }catch(err){ fail(); }
+   });
+  }
+  function wireDocente(){
+  ["sd-roster","sd-seed","sd-min","sd-max","sd-per","sd-res","sd-ex"].forEach(function(id){
+    var el = document.getElementById(id); if(!el) return;
+    el.addEventListener("input", runDocente);
+  });
+  copyFrom("sd-copy", function(){ return document.getElementById("sd-copy").dataset.tsv || ""; }, "Tabla copiada: pégala en una hoja de cálculo.");
+  copyFrom("sd-copycfg", function(){ return document.getElementById("sd-cfg").value; }, "Bloque copiado: pégalo en el código de la página.");
+
+    runDocente();
+  }
+  
+
+  /* ---------- rúbrica: estimación ---------- */
+  var rows = document.querySelectorAll("#rub tbody tr");
+  var LV = [["","—"],["1","Excelente (1,0)"],["0.75","Bueno (0,75)"],["0.5","Básico (0,5)"],["0.25","Insuficiente (0,25)"],["0","No cumple (0)"]];
+  var saved = store("etc_rub") || [];
+  Array.prototype.forEach.call(rows, function(tr, i){
+    var td = tr.lastElementChild, sl = document.createElement("select");
+    sl.id = "rub"+i; sl.setAttribute("aria-label", "Nivel del criterio "+(i+1));
+    LV.forEach(function(o){ var op = document.createElement("option"); op.value = o[0]; op.textContent = o[1]; sl.appendChild(op); });
+    if(saved[i] !== undefined) sl.value = saved[i];
+    sl.addEventListener("change", sumRub);
+    td.appendChild(sl);
+  });
+  function sumRub(){
+    var tot = 0, n = 0, vals = [];
+    Array.prototype.forEach.call(rows, function(tr, i){
+      var v = tr.querySelector("select").value; vals.push(v);
+      if(v !== ""){ tot += parseFloat(v); n++; }
+    });
+    store("etc_rub", vals);
+    document.getElementById("total").textContent = fmt(tot,2) + " / 5,00";
+    document.getElementById("evaluated").textContent = n === 5 ? "Los cinco criterios están evaluados." : n + " de 5 criterios evaluados.";
+  }
+  sumRub();
+
+  /* ---------- lista de revisión ---------- */
+  var chk = Array.prototype.slice.call(document.querySelectorAll("#chk input"));
+  var cs = store("etc_chk") || [];
+  chk.forEach(function(c, i){
+    c.checked = !!cs[i];
+    c.addEventListener("change", function(){
+      store("etc_chk", chk.map(function(x){ return x.checked; }));
+      var k = chk.filter(function(x){ return x.checked; }).length;
+      document.getElementById("chkmsg").textContent = k + " de " + chk.length + " puntos revisados.";
+    });
+  });
+  var k0 = chk.filter(function(x){ return x.checked; }).length;
+  document.getElementById("chkmsg").textContent = k0 + " de " + chk.length + " puntos revisados.";
+
+  /* ---------- inicio ---------- */
+  renderTable(); drawMe(); drawLab();
+  show((location.hash||"").slice(1));
+})();
+</script>
+</body>
+</html>
